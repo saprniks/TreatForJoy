@@ -18,12 +18,9 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
 # Создаем клавиатуру с кнопкой "Старт"
-start_keyboard = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    keyboard=[
-        [KeyboardButton("🚀 Старт")]
-    ]
-)
+start_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+start_button = KeyboardButton("🚀 Старт")
+start_keyboard.add(start_button)
 
 # Обработчик команды /start
 @dp.message(Command("start"))
