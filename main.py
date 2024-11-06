@@ -1,11 +1,10 @@
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
-from aiogram.types import Message, Update
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler
 from aiohttp import web
 import asyncio
 import os
-
 from dotenv import load_dotenv
 
 # Загружаем переменные окружения из .env
@@ -18,12 +17,22 @@ WEBHOOK_URL = os.getenv('WEBHOOK_URL')  # URL, куда Telegram будет от
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
+# Создаем клавиатуру с кнопкой "Старт"
+start_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+start_button = KeyboardButton("🚀 Старт")
+start_keyboard.add(start_button)
+
 # Обработчик команды /start
 @dp.message(Command("start"))
 async def send_welcome(message: Message):
-    await message.answer("Привет! Я фото бот.")
+    await message.answer("Привет! Нажми на кнопку ниже, чтобы начать работу с ботом.", reply_markup=start_keyboard)
 
-# Основная асинхронная функция для запуска бота через вебхук
+# Обработчик нажатия кнопки "Старт"
+@dp.message(lambda message: message.text == "🚀 Старт")
+async def start_bot(message: Message):
+    await message.answer("Бот запущен! Чем могу помочь?")
+
+# Основная асинхронная функция для установки вебхука
 async def on_startup(app: web.Application):
     # Устанавливаем вебхук
     await bot.set_webhook(WEBHOOK_URL)
