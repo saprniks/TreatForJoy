@@ -21,7 +21,7 @@ dp = Dispatcher()
 start_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
-        [KeyboardButton("🚀 Старт")]
+        [KeyboardButton(text="🚀 Старт")]
     ]
 )
 
