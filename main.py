@@ -5,8 +5,10 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler
 from aiohttp import web
 import os
 import logging
-import psycopg2  # Импорт библиотеки для работы с PostgreSQL
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
+from models import Base  # Импортируем Base из models для инициализации таблиц
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -31,29 +33,29 @@ start_keyboard = ReplyKeyboardMarkup(
     ]
 )
 
+# Настройка базы данных
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 # Функция для тестирования подключения к базе данных
 def test_db_connection():
     try:
         # Подключаемся к базе данных
-        connection = psycopg2.connect(DATABASE_URL)
-        cursor = connection.cursor()
-
-        # Выполняем простой запрос
-        cursor.execute("SELECT 1;")
-        result = cursor.fetchone()
-
-        # Логируем результат запроса
-        if result:
-            logger.info("Успешное подключение к базе данных. Результат тестового запроса: %s", result)
-        else:
-            logger.warning("Тестовый запрос вернул пустой результат.")
-
-        # Закрываем соединение
-        cursor.close()
+        connection = engine.connect()
+        logger.info("Успешное подключение к базе данных.")
         connection.close()
     except Exception as e:
         logger.error("Ошибка при подключении к базе данных: %s", e)
+
+
+# Функция для инициализации таблиц
+def init_db():
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Таблицы успешно инициализированы.")
+    except Exception as e:
+        logger.error("Ошибка при инициализации таблиц: %s", e)
 
 
 # Обработчик команды /start
@@ -74,9 +76,11 @@ async def on_startup(app: web.Application):
     await bot.set_webhook(WEBHOOK_URL)
     logger.info("Вебхук успешно установлен.")
 
-    # Проверка подключения к базе данных
+    # Проверка подключения к базе данных и инициализация таблиц
     logger.info("Проверка подключения к базе данных...")
     test_db_connection()
+    logger.info("Инициализация таблиц базы данных...")
+    init_db()
 
 
 async def on_shutdown(app: web.Application):

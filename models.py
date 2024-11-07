@@ -1,37 +1,83 @@
-from flask_sqlalchemy import SQLAlchemy
-from config import DATABASE_URL
-from flask import Flask
+from sqlalchemy import (
+    Column, Integer, String, ForeignKey, Float, DateTime, Table, Text
+)
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import func
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-db = SQLAlchemy(app)
+Base = declarative_base()
 
+# Таблица для связи многие-ко-многим между Users и Items для избранного
+favorites_table = Table(
+    'favorites',
+    Base.metadata,
+    Column('id', Integer, primary_key=True),
+    Column('user_id', Integer, ForeignKey('users.id'), nullable=False),
+    Column('item_id', Integer, ForeignKey('items.id'), nullable=False)
+)
 
-# Модель для пользователей
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    full_name = db.Column(db.String(100), nullable=False)
-    username = db.Column(db.String(100), nullable=False, unique=True)
-    avatar_url = db.Column(db.String(200), nullable=True)
+# Таблица для связи многие-ко-многим между Users и Items для корзины
+class Cart(Base):
+    __tablename__ = 'cart'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    item_id = Column(Integer, ForeignKey('items.id'), nullable=False)
+    quantity = Column(Integer, default=1)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    checkout_timestamp = Column(DateTime(timezone=True), nullable=True)
 
+    # Связи
+    user = relationship("User", back_populates="cart_items")
+    item = relationship("Item", back_populates="cart_entries")
 
-# Модель для фотографий
-class Photo(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    category = db.Column(db.String(50), nullable=False)
-    file_path = db.Column(db.String(200), nullable=False)
+# Таблица пользователей
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    full_name = Column(String, nullable=False)
+    username = Column(String, unique=True, nullable=True)
+    avatar_url = Column(String, nullable=True)
 
+    # Связи
+    favorites = relationship("Item", secondary=favorites_table, back_populates="favorited_by")
+    cart_items = relationship("Cart", back_populates="user")
 
-# Модель для комментариев
-class Comment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    comment_text = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
+# Таблица альбомов
+class Album(Base):
+    __tablename__ = 'albums'
+    id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
+    display_order = Column(Integer, default=0)
+    notes = Column(Text, nullable=True)
 
+    # Связи
+    items = relationship("Item", back_populates="album")
 
-# Функция для создания всех таблиц
-def create_tables():
-    with app.app_context():
-        db.create_all()
+# Таблица изделий
+class Item(Base):
+    __tablename__ = 'items'
+    id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    sku = Column(String, nullable=True)
+    price = Column(Float, nullable=False)
+    display_order = Column(Integer, default=0)
+    album_id = Column(Integer, ForeignKey('albums.id'))
+
+    # Связи
+    album = relationship("Album", back_populates="items")
+    photos = relationship("Photo", back_populates="item")
+    favorited_by = relationship("User", secondary=favorites_table, back_populates="favorites")
+    cart_entries = relationship("Cart", back_populates="item")
+
+# Таблица фотографий
+class Photo(Base):
+    __tablename__ = 'photos'
+    id = Column(Integer, primary_key=True)
+    item_id = Column(Integer, ForeignKey('items.id'), nullable=False)
+    url = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    display_order = Column(Integer, default=0)
+
+    # Связи
+    item = relationship("Item", back_populates="photos")
