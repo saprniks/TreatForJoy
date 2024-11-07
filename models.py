@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, ForeignKey, Float, DateTime, Table, Text
+    Column, Integer, String, ForeignKey, Float, DateTime, Table, Text, Boolean
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -26,7 +26,6 @@ class Cart(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     checkout_timestamp = Column(DateTime(timezone=True), nullable=True)
 
-    # Связи
     user = relationship("User", back_populates="cart_items")
     item = relationship("Item", back_populates="cart_entries")
 
@@ -37,8 +36,8 @@ class User(Base):
     full_name = Column(String, nullable=False)
     username = Column(String, unique=True, nullable=True)
     avatar_url = Column(String, nullable=True)
+    user_telegram_id = Column(Integer, unique=True, nullable=False)
 
-    # Связи
     favorites = relationship("Item", secondary=favorites_table, back_populates="favorited_by")
     cart_items = relationship("Cart", back_populates="user")
 
@@ -49,8 +48,9 @@ class Album(Base):
     title = Column(String, nullable=False)
     display_order = Column(Integer, default=0)
     notes = Column(Text, nullable=True)
+    is_available_to_order = Column(Boolean, default=True)
+    is_visible = Column(Boolean, default=True)
 
-    # Связи
     items = relationship("Item", back_populates="album")
 
 # Таблица изделий
@@ -63,8 +63,9 @@ class Item(Base):
     price = Column(Float, nullable=False)
     display_order = Column(Integer, default=0)
     album_id = Column(Integer, ForeignKey('albums.id'))
+    is_available_to_order = Column(Boolean, default=True)
+    is_visible = Column(Boolean, default=True)
 
-    # Связи
     album = relationship("Album", back_populates="items")
     photos = relationship("Photo", back_populates="item")
     favorited_by = relationship("User", secondary=favorites_table, back_populates="favorites")
@@ -79,5 +80,10 @@ class Photo(Base):
     description = Column(Text, nullable=True)
     display_order = Column(Integer, default=0)
 
-    # Связи
     item = relationship("Item", back_populates="photos")
+
+# Таблица администраторов
+class AdminUser(Base):
+    __tablename__ = 'admin_users'
+    id = Column(Integer, primary_key=True)
+    user_telegram_id = Column(Integer, unique=True, nullable=False)
