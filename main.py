@@ -1,64 +1,91 @@
-from aiohttp import web
+from flask import Flask, request, jsonify
 import logging
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from dotenv import load_dotenv
-from bot import bot, dp  # Импортируем бота и диспетчер из bot.py
-from app.models import Base  # Импортируем Base из models для инициализации таблиц
+from bot import dp  # Импорт диспетчера из bot.py
+from app.models import Base  # Импорт моделей для инициализации таблиц
+from app.routes.albums import albums_bp
+from app.routes.items import items_bp
 import os
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler
+import asyncio
+from aiogram import Bot
+from aiogram.types import Update
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Загружаем переменные окружения из .env
+# Загрузка переменных окружения
 load_dotenv()
 
+# Получаем конфигурацию из окружения
+API_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 WEBHOOK_URL = os.getenv('WEBHOOK_URL')
+WEBHOOK_PATH = '/webhook'
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-# Настройка базы данных
+# Инициализация бота и базы данных
+bot = Bot(token=API_TOKEN)
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
-# Функция для тестирования подключения к базе данных
-def test_db_connection():
-    try:
-        connection = engine.connect()
-        logger.info("Успешное подключение к базе данных.")
-        connection.close()
-    except Exception as e:
-        logger.error("Ошибка при подключении к базе данных: %s", e)
 
-# Функция для инициализации таблиц
+# Функция инициализации базы данных
 def init_db():
     try:
         Base.metadata.create_all(bind=engine)
-        logger.info("Таблицы успешно инициализированы.")
+        logger.info("Таблицы базы данных успешно инициализированы.")
     except Exception as e:
-        logger.error("Ошибка при инициализации таблиц: %s", e)
+        logger.error(f"Ошибка при инициализации таблиц базы данных: {e}")
 
-# Асинхронная функция для установки вебхука и инициализации базы данных
-async def on_startup(app: web.Application):
-    await bot.set_webhook(WEBHOOK_URL)
+
+# Создание Flask-приложения
+app = Flask(__name__)
+
+# Регистрация blueprints для API
+app.register_blueprint(albums_bp, url_prefix='/api/albums')
+app.register_blueprint(items_bp, url_prefix='/api/items')
+
+
+# Маршрут для вебхука бота
+@app.route(WEBHOOK_PATH, methods=['POST'])
+def webhook():
+    # Получаем обновление от Telegram
+    update = Update.de_json(request.get_json(force=True), bot)
+    # Обрабатываем обновление асинхронно
+    asyncio.run(dp.process_update(update))
+    return 'OK', 200
+
+
+# Маршрут для тестирования
+@app.route('/')
+def index():
+    return 'Приложение работает!', 200
+
+
+# Асинхронная функция для установки вебхука
+async def on_startup():
+    await bot.set_webhook(WEBHOOK_URL + WEBHOOK_PATH)
     logger.info("Вебхук успешно установлен.")
 
-    logger.info("Проверка подключения к базе данных...")
-    test_db_connection()
-    logger.info("Инициализация таблиц базы данных...")
-    init_db()
 
-async def on_shutdown(app: web.Application):
+# Асинхронная функция для удаления вебхука
+async def on_shutdown():
     await bot.delete_webhook()
     logger.info("Вебхук успешно удален.")
 
-# Настройка веб-сервера для приема обновлений
-app = web.Application()
-app.on_startup.append(on_startup)
-app.on_shutdown.append(on_shutdown)
-SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="/webhook")
 
-if __name__ == "__main__":
-    # Запуск веб-сервера
-    web.run_app(app, port=8000)
+if __name__ == '__main__':
+    # Инициализация базы данных перед запуском
+    init_db()
+
+    # Устанавливаем вебхук перед запуском Flask-приложения
+    asyncio.run(on_startup())
+
+    try:
+        # Запускаем Flask-приложение
+        app.run(host='0.0.0.0', port=8000)
+    except KeyboardInterrupt:
+        # Удаление вебхука при завершении работы приложения
+        asyncio.run(on_shutdown())
