@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 from bot import bot, dp  # Импортируем бота и диспетчер из bot.py
-from models import Base  # Импортируем Base из models для инициализации таблиц
+from app.models import Base  # Импортируем Base из models для инициализации таблиц
 import os
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler
 
