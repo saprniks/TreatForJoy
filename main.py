@@ -11,7 +11,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler
 
 # Set up detailed logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Load environment variables from .env
