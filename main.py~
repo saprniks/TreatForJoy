@@ -50,24 +50,11 @@ app.register_blueprint(items_bp, url_prefix='/api/items')
 
 # Маршрут для вебхука бота
 @app.route(WEBHOOK_PATH, methods=['POST'])
-async def webhook():
-    logger.info("Received webhook request.")
-    try:
-        # Parse incoming JSON data
-        json_data = request.get_json(force=True)
-        logger.info(f"Incoming JSON data: {json_data}")
-
-        # Create an Update object directly from JSON data
-        update = Update(**json_data)
-        logger.info("Update object created successfully.")
-
-        # Process update asynchronously
-        await dp.feed_update(update)
-        logger.info("Update processed successfully.")
-    except Exception as e:
-        logger.error(f"Error during update processing: {e}")
-        return 'Failed to process update', 500
-
+def webhook():
+    # Получаем обновление от Telegram
+    update = Update.de_json(request.get_json(force=True), bot)
+    # Обрабатываем обновление асинхронно
+    asyncio.run(dp.process_update(update))
     return 'OK', 200
 
 
