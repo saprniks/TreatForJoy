@@ -3,11 +3,9 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
-from bot import bot, dp
-from app.models import Base
+from bot import bot, dp  # Import bot and dispatcher from bot.py
+from app.models import Base  # Import Base for table initialization
 import os
-import requests
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler
 
 # Set up detailed logging
@@ -20,7 +18,6 @@ load_dotenv()
 WEBHOOK_URL = os.getenv('WEBHOOK_URL')
 DATABASE_URL = os.getenv('DATABASE_URL')
 WEBHOOK_PATH = "/webhook"
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 # Database setup
 engine = create_engine(DATABASE_URL)
@@ -43,22 +40,7 @@ def init_db():
     except Exception as e:
         logger.error("Error initializing tables: %s", e)
 
-# Function to check and log webhook status
-def check_webhook_status():
-    try:
-        response = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getWebhookInfo")
-        if response.status_code == 200:
-            webhook_info = response.json()
-            if webhook_info["ok"]:
-                logger.info("Webhook info retrieved successfully: %s", webhook_info["result"])
-            else:
-                logger.warning("Failed to retrieve webhook info: %s", webhook_info)
-        else:
-            logger.error("Error fetching webhook info, HTTP status code: %s", response.status_code)
-    except Exception as e:
-        logger.error("Exception occurred while fetching webhook info: %s", e)
-
-# Async function to set webhook, initialize database, and start scheduler
+# Async function to set webhook and initialize database
 async def on_startup(app: web.Application):
     logger.info("Attempting to set webhook with URL: %s", WEBHOOK_URL + WEBHOOK_PATH)
     try:
@@ -67,19 +49,10 @@ async def on_startup(app: web.Application):
     except Exception as e:
         logger.error("Failed to set webhook: %s", e)
 
-    # Check webhook status after setting it
-    check_webhook_status()
-
     logger.info("Checking database connection...")
     test_db_connection()
     logger.info("Initializing database tables...")
     init_db()
-
-    # Start scheduler for periodic webhook checks
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_webhook_status, "interval", minutes=1)
-    scheduler.start()
-    logger.info("Scheduler started for periodic webhook checks every 1 minute.")
 
 async def on_shutdown(app: web.Application):
     logger.info("Deleting webhook...")
