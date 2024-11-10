@@ -17,6 +17,7 @@ load_dotenv()
 
 WEBHOOK_URL = os.getenv('WEBHOOK_URL')
 DATABASE_URL = os.getenv('DATABASE_URL')
+WEBHOOK_PATH = "/webhook"
 
 # Настройка базы данных
 engine = create_engine(DATABASE_URL)
@@ -41,7 +42,7 @@ def init_db():
 
 # Асинхронная функция для установки вебхука и инициализации базы данных
 async def on_startup(app: web.Application):
-    await bot.set_webhook(WEBHOOK_URL)
+    await bot.set_webhook(WEBHOOK_URL + WEBHOOK_PATH)
     logger.info("Вебхук успешно установлен!")
 
     logger.info("Проверка подключения к базе данных...")
@@ -57,7 +58,7 @@ async def on_shutdown(app: web.Application):
 app = web.Application()
 app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
-SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="/webhook")
+SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
 
 if __name__ == "__main__":
     # Запуск веб-сервера
