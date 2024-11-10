@@ -77,7 +77,7 @@ async def on_startup(app: web.Application):
 
     # Start scheduler for periodic webhook checks
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_webhook_status, "interval", minutes=1)
+    scheduler.add_job(check_webhook_status, "interval", minutes=7)
     scheduler.start()
     logger.info("Scheduler started for periodic webhook checks every 1 minute.")
 
