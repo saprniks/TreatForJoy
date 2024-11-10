@@ -42,7 +42,7 @@ def init_db():
 # Асинхронная функция для установки вебхука и инициализации базы данных
 async def on_startup(app: web.Application):
     await bot.set_webhook(WEBHOOK_URL)
-    logger.info("Вебхук успешно установлен.")
+    logger.info("Вебхук успешно установлен!")
 
     logger.info("Проверка подключения к базе данных...")
     test_db_connection()
