@@ -7,8 +7,12 @@ load_dotenv()
 
 DATABASE_URL = os.getenv('DATABASE_URL').replace('postgresql://', 'postgresql+asyncpg://')
 
-# Создаем асинхронный движок
-engine = create_async_engine(DATABASE_URL, echo=True)
+# Создаем асинхронный движок с отключенным кэшированием подготовленных операторов
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=True,
+    connect_args={"statement_cache_size": 0}  # Отключаем кэширование операторов
+)
 
 # Создаем асинхронный sessionmaker
 SessionLocal = sessionmaker(
