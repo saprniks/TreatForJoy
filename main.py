@@ -1,49 +1,45 @@
-from aiohttp import web
 import logging
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv
-from bot import bot, dp
-from app.models import Base
 import os
 import requests
+from fastapi import FastAPI, Request, Depends, BackgroundTasks
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+from app.models import Base
+from app.utils.db import get_db  # функция для получения сессии БД
+from bot import bot, dp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler
+from aiogram import Dispatcher
+from aiogram.types import Update
 
-# Set up detailed logging
+# Загрузка переменных окружения из .env
+load_dotenv()
+
+# Настройки
+WEBHOOK_URL = os.getenv('WEBHOOK_URL')
+DATABASE_URL = os.getenv('DATABASE_URL').replace('postgresql://', 'postgresql+asyncpg://')
+BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+WEBHOOK_PATH = "/webhook"
+PORT = int(os.getenv("PORT", 8000))
+
+# Настройка логирования
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Load environment variables from .env
-load_dotenv()
+# Настройка FastAPI приложения
+app = FastAPI()
 
-WEBHOOK_URL = os.getenv('WEBHOOK_URL')
-DATABASE_URL = os.getenv('DATABASE_URL')
-WEBHOOK_PATH = "/webhook"
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+# Настройка базы данных
+engine = create_async_engine(DATABASE_URL, echo=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
 
-# Database setup
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Инициализация базы данных
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database tables initialized successfully.")
 
-# Function to test database connection
-def test_db_connection():
-    try:
-        connection = engine.connect()
-        logger.info("Database connection successful.")
-        connection.close()
-    except Exception as e:
-        logger.error("Database connection error: %s", e)
-
-# Function to initialize tables
-def init_db():
-    try:
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables initialized successfully.")
-    except Exception as e:
-        logger.error("Error initializing tables: %s", e)
-
-# Function to check and log webhook status
+# Функция проверки состояния вебхука
 def check_webhook_status():
     try:
         response = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getWebhookInfo")
@@ -58,44 +54,39 @@ def check_webhook_status():
     except Exception as e:
         logger.error("Exception occurred while fetching webhook info: %s", e)
 
-# Async function to set webhook, initialize database, and start scheduler
-async def on_startup(app: web.Application):
-    logger.info("Attempting to set webhook with URL: %s", WEBHOOK_URL + WEBHOOK_PATH)
-    try:
-        await bot.set_webhook(WEBHOOK_URL + WEBHOOK_PATH)
-        logger.info("Webhook set successfully!")
-    except Exception as e:
-        logger.error("Failed to set webhook: %s", e)
+# Настройка вебхука при запуске приложения
+@app.on_event("startup")
+async def on_startup():
+    logger.info("Setting webhook...")
+    await bot.set_webhook(WEBHOOK_URL + WEBHOOK_PATH)
+    logger.info("Webhook set successfully!")
+    await init_db()
 
-    # Check webhook status after setting it
-    check_webhook_status()
-
-    logger.info("Checking database connection...")
-    test_db_connection()
-    logger.info("Initializing database tables...")
-    init_db()
-
-    # Start scheduler for periodic webhook checks
+    # Планировщик для периодической проверки вебхука
     scheduler = AsyncIOScheduler()
     scheduler.add_job(check_webhook_status, "interval", minutes=7)
     scheduler.start()
-    logger.info("Scheduler started for periodic webhook checks every 1 minute.")
+    logger.info("Scheduler started for periodic webhook checks.")
 
-async def on_shutdown(app: web.Application):
+# Удаление вебхука при завершении работы приложения
+@app.on_event("shutdown")
+async def on_shutdown():
     logger.info("Deleting webhook...")
-    try:
-        await bot.delete_webhook()
-        logger.info("Webhook deleted successfully.")
-    except Exception as e:
-        logger.error("Failed to delete webhook: %s", e)
+    await bot.delete_webhook()
+    await engine.dispose()
 
-# Configure web server to handle updates
-app = web.Application()
-app.on_startup.append(on_startup)
-app.on_shutdown.append(on_shutdown)
-SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
+# Эндпоинт для получения обновлений от Telegram
+@app.post(WEBHOOK_PATH)
+async def telegram_webhook(update: dict):
+    telegram_update = Update.to_object(update)
+    await dp.process_update(telegram_update)
+    return {"ok": True}
+
+# Маршрут для проверки состояния приложения
+@app.get("/")
+async def read_root():
+    return {"message": "Telegram bot is running"}
 
 if __name__ == "__main__":
-    logger.info("Starting web server...")
-    # Run the web server
-    web.run_app(app, port=8000)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
