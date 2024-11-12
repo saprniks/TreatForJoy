@@ -27,33 +27,36 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js">
-        // JavaScript для регистрации пользователя, если он зашел через Telegram Web App
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
         window.addEventListener('load', async () => {
-            const user = window.Telegram.WebApp.initDataUnsafe.user;
-            console.log("User data from Telegram:", user); // Добавляем лог для проверки данных пользователя
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+                const user = window.Telegram.WebApp.initDataUnsafe.user;
+                console.log("User data from Telegram:", user);
 
-            if (user) {
-                try {
-                    const response = await fetch('/webapp/register_user', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(user)
-                    });
+                if (user) {
+                    try {
+                        const response = await fetch('/webapp/register_user', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(user)
+                        });
 
-                    const result = await response.json();
-                    console.log(result); // Лог для подтверждения успешной регистрации
+                        const result = await response.json();
+                        console.log(result);
 
-                } catch (error) {
-                    console.error('Error registering user:', error);
+                    } catch (error) {
+                        console.error('Error registering user:', error);
+                    }
+                } else {
+                    console.warn("No user data found in Telegram Web App context");
                 }
             } else {
-                console.warn("No user data found in Telegram Web App context"); // Лог, если данных пользователя нет
+                console.warn("Telegram Web App is not available.");
             }
         });
-
     </script>
 </body>
 </html>
