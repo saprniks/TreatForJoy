@@ -31,6 +31,16 @@ async def init_db():
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database tables initialized successfully.")
 
+
+async def check_webhook_status():
+    webhook_info = await bot.get_webhook_info()
+    if webhook_info.url != WEBHOOK_URL + WEBHOOK_PATH:
+        await bot.set_webhook(WEBHOOK_URL + WEBHOOK_PATH)
+        logger.info("Webhook set successfully!")
+    else:
+        logger.info("Webhook already set, no action needed.")
+
+
 # Настройка вебхука при запуске приложения
 @app.on_event("startup")
 async def on_startup():
@@ -46,7 +56,7 @@ async def on_startup():
 
     # Планировщик для периодической проверки вебхука
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_webhook_status, "interval", minutes=7)
+    scheduler.add_job(check_webhook_status, "interval", minutes=1)
     scheduler.start()
     logger.info("Scheduler started for periodic webhook checks.")
 
