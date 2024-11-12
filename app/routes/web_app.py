@@ -22,7 +22,14 @@ async def get_catalog(request: Request, db: AsyncSession = Depends(get_db)):
 
 @router.post("/register_user")
 async def register_user(request: Request, db: AsyncSession = Depends(get_db)):
+    # Лог подтверждения получения запроса
+    logging.info("Received POST request to /register_user")
+
+    # Получаем данные пользователя из запроса
     user_data = await request.json()
     logging.info(f"Received user data: {user_data}")
+
+    # Вызываем функцию для проверки и добавления пользователя, если он не существует
     await user_crud.add_user_if_not_exists(db, user_data)
+
     return {"status": "User registered successfully"}

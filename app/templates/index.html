@@ -31,6 +31,7 @@
         // JavaScript для регистрации пользователя, если он зашел через Telegram Web App
         window.addEventListener('load', async () => {
             const user = window.Telegram.WebApp.initDataUnsafe.user;
+            console.log("User data from Telegram:", user); // Добавляем лог для проверки данных пользователя
 
             if (user) {
                 try {
@@ -48,8 +49,11 @@
                 } catch (error) {
                     console.error('Error registering user:', error);
                 }
+            } else {
+                console.warn("No user data found in Telegram Web App context"); // Лог, если данных пользователя нет
             }
         });
+
     </script>
 </body>
 </html>
