@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Каталог работ</title>
+    <title>Albums Catalog</title>
 </head>
 <body>
-    <h1>Hello world!</h1>
-    <p>Добро пожаловать в каталог работ!</p>
+    <h1>Albums Catalog</h1>
+    <ul>
+        {% for album in albums %}
+            <li>{{ album.title }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
