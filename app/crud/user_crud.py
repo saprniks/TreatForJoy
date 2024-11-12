@@ -1,3 +1,4 @@
+# user_crud.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.models import User
@@ -19,12 +20,14 @@ async def create_user(db: AsyncSession, full_name: str, username: str, user_tele
 async def add_user_if_not_exists(session: AsyncSession, user_data: dict):
     # Извлекаем user_telegram_id из данных
     user_id = user_data.get("id")
+    print("User data received:", user_data)  # Отладочный вывод
 
     # Проверяем, существует ли пользователь с таким user_telegram_id
     result = await session.execute(select(User).where(User.user_telegram_id == user_id))
     existing_user = result.scalars().first()
 
     if existing_user is None:
+        print("User not found, creating new user")  # Отладочный вывод
         # Если пользователь не найден, создаем новую запись
         new_user = User(
             user_telegram_id=user_id,
@@ -34,3 +37,6 @@ async def add_user_if_not_exists(session: AsyncSession, user_data: dict):
         )
         session.add(new_user)
         await session.commit()
+        print("User created successfully:", new_user)
+    else:
+        print("User already exists, skipping creation")  # Отладочный вывод
