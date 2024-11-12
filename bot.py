@@ -33,7 +33,8 @@ navigation_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Палитра натуральных красителей на бумаге", url="https://t.me/treat_for_joy/1069")],
     [InlineKeyboardButton(text="Процесс окрашивания глазури", url="https://t.me/treat_for_joy/569")],
     [InlineKeyboardButton(text="Как размягчить затвердевший пряник", url="https://t.me/treat_for_joy/959")],
-    [InlineKeyboardButton(text="Набор натуральных красителей", url="https://t.me/treat_for_joy/1484")]
+    [InlineKeyboardButton(text="Набор натуральных красителей", url="https://t.me/treat_for_joy/1484")],
+    [InlineKeyboardButton(text="Open Web App", web_app=WebAppInfo(url=WEB_APP_URL))],
 ])
 
 # Обработчик команды /start
