@@ -5,7 +5,6 @@ from sqlalchemy.future import select
 from app.crud import album_crud, user_crud
 from app.utils.db import get_db
 from fastapi.templating import Jinja2Templates
-import logging
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -22,7 +21,10 @@ async def get_catalog(request: Request, db: AsyncSession = Depends(get_db)):
 
 @router.post("/register_user")
 async def register_user(request: Request, db: AsyncSession = Depends(get_db)):
+    # Получаем данные пользователя из запроса
     user_data = await request.json()
-    logging.info(f"Received user data: {user_data}")
+
+    # Вызываем функцию для проверки и добавления пользователя, если он не существует
     await user_crud.add_user_if_not_exists(db, user_data)
+
     return {"status": "User registered successfully"}
