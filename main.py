@@ -1,13 +1,13 @@
 import logging
 import os
-import requests
-from fastapi import FastAPI, Depends, BackgroundTasks
+from fastapi import FastAPI
 from dotenv import load_dotenv
 from app.models import Base
-from app.utils.db import engine, get_db  # используем импортированные функции
+from app.utils.db import engine
 from bot import bot, dp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types import Update
+from aiogram import Dispatcher
 
 # Загрузка переменных окружения из .env
 load_dotenv()
@@ -30,21 +30,6 @@ async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database tables initialized successfully.")
-
-# Функция проверки состояния вебхука
-def check_webhook_status():
-    try:
-        response = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getWebhookInfo")
-        if response.status_code == 200:
-            webhook_info = response.json()
-            if webhook_info["ok"]:
-                logger.info("Webhook info retrieved successfully: %s", webhook_info["result"])
-            else:
-                logger.warning("Failed to retrieve webhook info: %s", webhook_info)
-        else:
-            logger.error("Error fetching webhook info, HTTP status code: %s", response.status_code)
-    except Exception as e:
-        logger.error("Exception occurred while fetching webhook info: %s", e)
 
 # Настройка вебхука при запуске приложения
 @app.on_event("startup")
@@ -75,8 +60,8 @@ async def on_shutdown():
 # Эндпоинт для получения обновлений от Telegram
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(update: dict):
-    telegram_update = Update(**update)  # Исправление здесь
-    await dp.process_update(telegram_update)
+    telegram_update = Update(**update)
+    await dp.feed_update(bot, telegram_update)
     return {"ok": True}
 
 # Маршрут для проверки состояния приложения
@@ -86,5 +71,4 @@ async def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=PORT)
