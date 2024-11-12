@@ -2,12 +2,12 @@ import logging
 import os
 from fastapi import FastAPI
 from dotenv import load_dotenv
-from app.models import Base
+from app.models.models import Base
 from app.utils.db import engine
+from app.routes import web_app  # Импортируем маршруты веб-приложения
 from bot import bot, dp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types import Update
-from aiogram import Dispatcher
 
 # Загрузка переменных окружения из .env
 load_dotenv()
@@ -24,6 +24,10 @@ logger = logging.getLogger(__name__)
 
 # Настройка FastAPI приложения
 app = FastAPI()
+
+# Подключение маршрутов веб-приложения
+app.include_router(web_app.router, prefix="/webapp")
+
 
 # Инициализация базы данных
 async def init_db():
@@ -60,12 +64,14 @@ async def on_startup():
     scheduler.start()
     logger.info("Scheduler started for periodic webhook checks.")
 
+
 # Удаление вебхука при завершении работы приложения
 @app.on_event("shutdown")
 async def on_shutdown():
     logger.info("Deleting webhook...")
     await bot.delete_webhook()
     await engine.dispose()
+
 
 # Эндпоинт для получения обновлений от Telegram
 @app.post(WEBHOOK_PATH)
@@ -74,11 +80,14 @@ async def telegram_webhook(update: dict):
     await dp.feed_update(bot, telegram_update)
     return {"ok": True}
 
+
 # Маршрут для проверки состояния приложения
 @app.get("/")
 async def read_root():
     return {"message": "Telegram bot is running"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=PORT)

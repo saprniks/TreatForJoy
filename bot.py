@@ -1,6 +1,6 @@
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 import os
 import logging
 from dotenv import load_dotenv
@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 # Загрузка переменных окружения
 load_dotenv()
 API_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+WEB_APP_URL = os.getenv('WEB_APP_URL')  # URL веб-приложения из .env
 
 # Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN)
@@ -21,7 +22,7 @@ dp = Dispatcher()
 start_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
-        [KeyboardButton(text="Каталог работ")],
+        [KeyboardButton(text="Каталог работ", web_app=WebAppInfo(url=WEB_APP_URL))],
         [KeyboardButton(text="Навигация по каналу")]
     ]
 )
@@ -40,12 +41,6 @@ navigation_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 async def send_welcome(message: Message):
     logger.info("Received /start command from user: %s", message.from_user.id)
     await message.answer("Привет! Выберите один из вариантов ниже:", reply_markup=start_keyboard)
-
-# Обработчик кнопки "Каталог работ"
-@dp.message(lambda message: message.text == "Каталог работ")
-async def catalog_in_progress(message: Message):
-    logger.info("User %s requested 'Каталог работ'", message.from_user.id)
-    await message.answer("Каталог в стадии разработки.")
 
 # Обработчик кнопки "Навигация по каналу"
 @dp.message(lambda message: message.text == "Навигация по каналу")
