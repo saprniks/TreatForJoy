@@ -25,13 +25,11 @@ logger = logging.getLogger(__name__)
 # Настройка FastAPI приложения
 app = FastAPI()
 
-
 # Инициализация базы данных
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database tables initialized successfully.")
-
 
 # Функция проверки состояния вебхука
 def check_webhook_status():
@@ -47,7 +45,6 @@ def check_webhook_status():
             logger.error("Error fetching webhook info, HTTP status code: %s", response.status_code)
     except Exception as e:
         logger.error("Exception occurred while fetching webhook info: %s", e)
-
 
 # Настройка вебхука при запуске приложения
 @app.on_event("startup")
@@ -68,7 +65,6 @@ async def on_startup():
     scheduler.start()
     logger.info("Scheduler started for periodic webhook checks.")
 
-
 # Удаление вебхука при завершении работы приложения
 @app.on_event("shutdown")
 async def on_shutdown():
@@ -76,20 +72,17 @@ async def on_shutdown():
     await bot.delete_webhook()
     await engine.dispose()
 
-
 # Эндпоинт для получения обновлений от Telegram
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(update: dict):
-    telegram_update = Update.to_object(update)
+    telegram_update = Update(**update)  # Исправление здесь
     await dp.process_update(telegram_update)
     return {"ok": True}
-
 
 # Маршрут для проверки состояния приложения
 @app.get("/")
 async def read_root():
     return {"message": "Telegram bot is running"}
-
 
 if __name__ == "__main__":
     import uvicorn
