@@ -14,15 +14,20 @@ engine = create_async_engine(
     connect_args={"statement_cache_size": 0}  # Отключаем кэширование операторов
 )
 
-# Создаем асинхронный sessionmaker
+# Настраиваем sessionmaker с использованием AsyncSession
 SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
     bind=engine,
-    class_=AsyncSession
+    class_=AsyncSession,
+    autoflush=False,
+    autocommit=False,
+    expire_on_commit=False
 )
 
 # Функция для получения сессии
 async def get_db():
     async with SessionLocal() as session:
         yield session
+
+# Закрытие движка при завершении
+async def dispose_engine():
+    await engine.dispose()
