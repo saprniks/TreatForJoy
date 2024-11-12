@@ -14,7 +14,7 @@ engine = create_async_engine(
     connect_args={"statement_cache_size": 0}  # Отключаем кэширование операторов
 )
 
-# Настраиваем sessionmaker с использованием AsyncSession
+#  Настраиваем sessionmaker с использованием AsyncSession
 SessionLocal = sessionmaker(
     bind=engine,
     class_=AsyncSession,
