@@ -51,7 +51,31 @@
                                 <h6 class="card-title mb-0">{{ album.title }}</h6>
                                 <a href="#" class="btn btn-link p-0">Показать все</a>
                             </div>
-                            <p class="card-text">Описание альбома или другой краткий текст.</p>
+
+                                {% for item in items %}
+                                    {% if item.album_id == album.id %}
+                                        <div class="card mb-3">
+                                            <div class="row no-gutters">
+                                                <!-- Фото слева -->
+                                                <div class="col-md-4">
+                                                    <img src="URL_TO_ITEM_PHOTO" class="card-img" alt="{{ item.title }}">
+                                                </div>
+                                                <!-- Информация справа -->
+                                                <div class="col-md-8">
+                                                    <div class="card-body">
+                                                        <!-- Заголовок товара -->
+                                                        <h6 class="card-title mb-1">{{ item.title }}</h6>
+                                                        <!-- Описание с усечением текста -->
+                                                        <p class="card-text text-truncate">{{ item.description }}</p>
+                                                        <!-- Цена товара -->
+                                                        <p class="card-text"><strong>Цена:</strong> {{ item.price }} руб.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+
                         </div>
                     </div>
                 </div>
