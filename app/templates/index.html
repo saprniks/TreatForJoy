@@ -18,9 +18,12 @@
 
         /* Уменьшение отступа между границами карточки альбома и вложенной карточки товара */
         .album-card .product-card {
-            margin-left: 0.1rem;
-            margin-right: 0.1rem;
+            margin-left: 0.1rem !important;
+            margin-right: 0.1rem !important;
+            padding-left: 0.1rem !important;
+            padding-right: 0.1rem !important;
         }
+
 
         /* Уменьшение отступа между карточкой альбома и границей экрана */
         .album-card-container {
@@ -63,8 +66,8 @@
     <div class="container mt-5 pt-4 album-card-container">
         <div class="row">
             {% for album in albums %}
-                <div class="col-md-4 mb-4 album-card">
-                    <div class="card">
+                <div class="col-md-6 mb-4 album-card">
+                    <div class="card bg-light">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="card-title mb-0">{{ album.title }}</h6>
