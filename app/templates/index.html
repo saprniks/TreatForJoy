@@ -9,25 +9,45 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Albums Catalog</h1>
 
-        <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" type="button" id="albumDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Select Album
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <!-- Favorites Button -->
+            <button class="btn btn-outline-danger" type="button">
+                <i class="fas fa-heart"></i>
             </button>
-            <div class="dropdown-menu" aria-labelledby="albumDropdown">
-                {% for album in albums %}
-                    <a class="dropdown-item" href="#">{{ album.title }}</a>
-                {% endfor %}
+
+            <!-- Centered Dropdown -->
+            <div class="mx-auto">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="albumDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Выбрать альбом
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="albumDropdown">
+                        {% for album in albums %}
+                            <a class="dropdown-item" href="#">{{ album.title }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
+
+            <!-- Cart Button -->
+            <button class="btn btn-outline-primary" type="button">
+                <i class="fas fa-shopping-cart"></i>
+            </button>
         </div>
-    </div>
+    </nav>
+
+
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <!-- Font Awesome for icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
     <script>
         window.addEventListener('load', async () => {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
