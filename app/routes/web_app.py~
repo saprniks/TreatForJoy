@@ -22,8 +22,7 @@ async def get_catalog(request: Request, db: AsyncSession = Depends(get_db)):
 
     # Добавляем к каждой item поле photo с display_order = 1
     for item in filtered_items:
-        photo = await photo_crud.get_first_photo_for_item(db, item.id)
-        item.photo_url = photo.url
+        item.photo_url = await photo_crud.get_first_photo_for_item(db, item.id)
 
     # Передаем список альбомов и отфильтрованные изделия в шаблон
     return templates.TemplateResponse("index.html", {"request": request, "albums": albums, "items": filtered_items})
