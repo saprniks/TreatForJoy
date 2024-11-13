@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Albums Catalog</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMdqH/lf4x7gFlCqFTG8iN5L8zjX0XdEF6gE6oE" crossorigin="anonymous">
 </head>
 <body>
     <!-- Navbar -->
@@ -13,14 +16,14 @@
         <div class="container">
             <!-- Favorites Link -->
             <a href="#" class="text-danger mr-3">
-                <i class="fas fa-heart fa-lg"></i>
+                <i class="fa fa-heart fa-lg"></i>
             </a>
 
             <!-- Centered Dropdown -->
             <div class="mx-auto">
                 <div class="dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="albumDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Select Album
+                        Выбрать альбом
                     </button>
                     <div class="dropdown-menu" aria-labelledby="albumDropdown">
                         {% for album in albums %}
@@ -32,7 +35,7 @@
 
             <!-- Cart Link -->
             <a href="#" class="text-primary ml-3">
-                <i class="fas fa-shopping-cart fa-lg"></i>
+                <i class="fa fa-shopping-cart fa-lg"></i>
             </a>
         </div>
     </nav>
@@ -45,10 +48,10 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
-                                <h5 class="card-title">{{ album.title }}</h5>
+                                <h6 class="card-title">{{ album.title }}</h6>
                                 <a href="#" class="btn btn-link p-0">Показать все</a>
                             </div>
-                            <p class="card-text">ТУТ БУДУТ ТРИ ГОРИЗОНАТЛЬНЫЕ КАРТОЧКИ ИЗДЕЛИЙ.</p>
+                            <p class="card-text">Описание альбома или другой краткий текст.</p>
                         </div>
                     </div>
                 </div>
@@ -60,7 +63,42 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Font Awesome for icons -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        window.addEventListener('load', async () => {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+                const user = window.Telegram.WebApp.initDataUnsafe.user;
+                console.log("User data from Telegram:", user);
+
+                // Проверка на наличие данных пользователя
+                if (user) {
+                    console.log("User ID:", user.id);
+                    console.log("Username:", user.username);
+                    console.log("First name:", user.first_name);
+                    console.log("Last name:", user.last_name);
+                    console.log("Avatar URL:", user.photo_url);
+
+                    try {
+                        const response = await fetch('/webapp/register_user', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(user)
+                        });
+
+                        const result = await response.json();
+                        console.log("User registration response:", result);
+
+                    } catch (error) {
+                        console.error('Error registering user:', error);
+                    }
+                } else {
+                    console.warn("No user data found in Telegram Web App context");
+                }
+            } else {
+                console.warn("Telegram Web App is not available.");
+            }
+        });
+    </script>
 </body>
 </html>

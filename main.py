@@ -60,7 +60,7 @@ async def on_startup():
 
     # Планировщик для периодической проверки вебхука
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_webhook_status, "interval", minutes=1)
+    scheduler.add_job(check_webhook_status, "interval", minutes=3)
     scheduler.start()
     logger.info("Scheduler started for periodic webhook checks.")
 
