@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.crud import album_crud, user_crud, item_crud
+from app.crud import album_crud, user_crud, item_crud, photo_crud
 from app.utils.db import get_db
 from fastapi.templating import Jinja2Templates
 import logging
@@ -19,6 +19,10 @@ async def get_catalog(request: Request, db: AsyncSession = Depends(get_db)):
 
     # Отбираем изделия с display_order <= 3
     filtered_items = [item for item in items_all if item.display_order <= 3]
+
+    # Добавляем к каждой item поле photo с display_order = 1
+    for item in filtered_items:
+        item.photo_url = await photo_crud.get_first_photo_for_item(db, item.id)
 
     # Передаем список альбомов и отфильтрованные изделия в шаблон
     return templates.TemplateResponse("index.html", {"request": request, "albums": albums, "items": filtered_items})

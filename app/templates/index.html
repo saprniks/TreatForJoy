@@ -54,23 +54,18 @@
 
                                 {% for item in items %}
                                     {% if item.album_id == album.id %}
-                                        <div class="card mb-3">
-                                            <div class="row no-gutters">
-                                                <!-- Фото слева -->
-                                                <div class="col-md-4">
-                                                    <img src="URL_TO_ITEM_PHOTO" class="card-img" alt="{{ item.title }}">
-                                                </div>
-                                                <!-- Информация справа -->
-                                                <div class="col-md-8">
-                                                    <div class="card-body">
-                                                        <!-- Заголовок товара -->
-                                                        <h6 class="card-title mb-1">{{ item.title }}</h6>
-                                                        <!-- Описание с усечением текста -->
-                                                        <p class="card-text text-truncate">{{ item.description }}</p>
-                                                        <!-- Цена товара -->
-                                                        <p class="card-text"><strong>Цена:</strong> {{ item.price }} руб.</p>
-                                                    </div>
-                                                </div>
+                                        <div class="card flex-row mb-3">
+                                            <!-- Фото слева -->
+                                            <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 100px; height: auto; object-fit: cover;">
+
+                                            <!-- Информация справа -->
+                                            <div class="card-body">
+                                                <!-- Заголовок товара -->
+                                                <h6 class="card-title mb-1">{{ item.title }}</h6>
+                                                <!-- Описание с усечением текста -->
+                                                <p class="card-text text-truncate" style="max-width: 200px;">{{ item.description }}</p>
+                                                <!-- Цена товара -->
+                                                <p class="card-text"><strong>Цена:</strong> {{ item.price }} руб.</p>
                                             </div>
                                         </div>
                                     {% endif %}
