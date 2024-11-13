@@ -76,9 +76,9 @@
 
                             {% for item in items %}
                                 {% if item.album_id == album.id %}
-                                    <div class="card flex-row mb-3 product-card">
+                                    <div class="card flex-row product-card">
                                         <!-- Фото слева -->
-                                        <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 100px; height: auto; object-fit: cover;">
+                                        <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 80px; height: auto; object-fit: cover;">
 
                                         <!-- Информация справа -->
                                         <div class="card-body">
