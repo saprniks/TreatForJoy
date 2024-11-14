@@ -17,7 +17,7 @@
         }
 
         /* Уменьшение отступа между границами карточки альбома и вложенной карточки товара */
-        .album-card .product-card {
+        .card-body .product-card {
             margin-left: 0.1rem !important;
             margin-right: 0.1rem !important;
             padding-left: 0.1rem !important;
@@ -85,7 +85,7 @@
                                             <!-- Заголовок товара -->
                                             <h6 class="card-title mb-1">{{ item.title }}</h6>
                                             <!-- Описание с усечением текста -->
-                                            <p class="card-text text-truncate">{{ item.description }}</p>
+                                            <p class="card-text text-truncate" style="max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.description }}</p>
                                             <!-- Цена товара -->
                                             <p class="card-text"><strong>Цена:</strong> {{ item.price }} руб.</p>
                                         </div>
