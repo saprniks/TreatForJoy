@@ -67,8 +67,8 @@
         <div class="row">
             {% for album in albums %}
                 <div class="col-md-6 mb-4 border album-card">
-                    <div class="card bg-light">
-                        <div class="card-body">
+                    <div class="card mb-0 bg-light">
+                        <div class="mb-0 card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="card-title mb-0">{{ album.title }}</h6>
                                 <a href="#" class="btn btn-link p-0">Показать все</a>
@@ -78,7 +78,7 @@
                                 {% if item.album_id == album.id %}
                                     <div class="card flex-row mb-2 border product-card">
                                         <!-- Фото слева -->
-                                        <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 40px; height: auto; object-fit: cover;">
+                                        <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: auto; height: auto; object-fit: cover;">
 
                                         <!-- Информация справа -->
                                         <div class="card-body">
@@ -88,6 +88,11 @@
                                             <p class="card-text text-truncate">{{ item.description }}</p>
                                             <!-- Цена товара -->
                                             <p class="card-text"><strong>Цена:</strong> {{ item.price }} руб.</p>
+                                        </div>
+                                        
+                                        <!-- Кнопка добавления в корзину -->
+                                        <div class="card-footer">
+                                            <a href="#" class="btn btn-primary btn-block"><h1>+</h1></a>
                                         </div>
                                     </div>
                                 {% endif %}
