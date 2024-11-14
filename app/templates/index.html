@@ -78,7 +78,7 @@
                                 {% if item.album_id == album.id %}
                                     <div class="card flex-row mb-2 border product-card">
                                         <!-- Фото слева -->
-                                        <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: auto; height: auto; object-fit: cover;">
+                                        <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 15%; height: auto; object-fit: cover;">
 
                                         <!-- Информация справа -->
                                         <div class="card-body">
@@ -89,10 +89,10 @@
                                             <!-- Цена товара -->
                                             <p class="card-text"><strong>Цена:</strong> {{ item.price }} руб.</p>
                                         </div>
-                                        
+
                                         <!-- Кнопка добавления в корзину -->
-                                        <div class="card-footer">
-                                            <a href="#" class="btn btn-primary btn-block"><h1>+</h1></a>
+                                        <div class="card-body">
+                                            <a href="#" class="btn btn-light"><h1>+</h1></a>
                                         </div>
                                     </div>
                                 {% endif %}
