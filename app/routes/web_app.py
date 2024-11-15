@@ -29,6 +29,21 @@ async def get_catalog(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse("index.html", {"request": request, "albums": albums, "items": filtered_items})
 
 
+@router.get("/album/{album_id}", response_class=HTMLResponse)
+async def view_album(album_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+    # Retrieve the album and its items by album_id
+    album = await album_crud.get_album_by_id(db, album_id)
+    items = await item_crud.get_items_by_album_id(db, album_id)
+
+    # Добавляем к каждой item поле photo с display_order = 1
+    for item in items:
+        photo = await photo_crud.get_first_photo_for_item(db, item.id)
+        item.photo_url = photo.url
+
+    # Render album.html with the album and items data
+    return templates.TemplateResponse("album.html", {"request": request, "album": album, "items": items})
+
+
 # Регистрация пользователя
 @router.post("/register_user")
 async def register_user(request: Request, db: AsyncSession = Depends(get_db)):

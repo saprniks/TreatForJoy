@@ -13,6 +13,11 @@ async def get_item_by_id(db: AsyncSession, item_id: int):
     return result.scalar_one_or_none()
 
 
+async def get_items_by_album_id(db: AsyncSession, album_id: int):
+    result = await db.execute(select(Item).where(Item.album_id == album_id).order_by(Item.display_order))
+    return result.scalars().all()
+
+
 async def create_item(db: AsyncSession, title: str, description: str = None, sku: str = None, price: float = 0.0):
     item = Item(title=title, description=description, sku=sku, price=price)
     db.add(item)
