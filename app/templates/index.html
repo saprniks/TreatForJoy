@@ -10,25 +10,43 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMdqH/lf4x7gFlCqFTG8iN5L8zjX0XdEF6gE6oE" crossorigin="anonymous">
     <style>
-        /* Поднятие текста вплотную к верхней границе карточки альбома */
+        .card {
+            border: none;
+            border-radius: 12px;
+        }
+         .card-body {
+            border: none;
+            border-radius: 12px;
+        }
+        .card-img-left {
+            border: none;
+            border-radius: 12px;
+        }
+        .product-card {
+            border: none;
+            border-radius: 12px;
+        }
+        .card-footer {
+            border: none;
+            border-radius: 12px;
+        }
+
+        /* Убираем отступы сверху в карточке альбома */
         .album-card .card-body {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
+            padding-top: 0.0rem;
+            padding-bottom: 0.0rem;
         }
 
-        /* Уменьшение отступа между границами карточки альбома и вложенной карточки товара */
-        .card-body .product-card {
-            margin-left: 0.1rem !important;
-            margin-right: 0.1rem !important;
-            padding-left: 0.1rem !important;
-            padding-right: 0.1rem !important;
+        /* Уменьшаем зазор между границами альбомной карточки и вложенной карточкой изделия */
+        .album-card .product-card {
+            margin-left: -1.0rem;
+            margin-right: -1.0rem;
         }
 
-
-        /* Уменьшение отступа между карточкой альбома и границей экрана */
+        /* Уменьшаем зазор между карточкой альбома и краем экрана */
         .album-card-container {
-            padding-left: 0.2rem;
-            padding-right: 0.2rem;
+            padding-left:  0.0rem;
+            padding-right: 0.0rem;
         }
     </style>
 </head>
@@ -36,13 +54,8 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
         <div class="container">
-            <!-- Favorites Link -->
-            <a href="#" class="text-danger mr-3">
-                ❤️
-            </a>
 
             <!-- Centered Dropdown -->
-            <div class="mx-auto">
                 <div class="dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="albumDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Выбрать альбом
@@ -53,46 +66,53 @@
                         {% endfor %}
                     </div>
                 </div>
-            </div>
 
-            <!-- Cart Link -->
-            <a href="#" class="text-primary ml-3">
-                🛒
-            </a>
+            <!-- Favorites Link -->
+            <button type="button" class="btn btn-link text-primary ml-3 p-0" style="border: none;">
+                <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/heart_full.png?t=2024-11-14T23%3A25%3A45.733Z" alt="Избранное" style="width: 40px; height: 40px;">
+            </button>
+            <!-- Cart Button -->
+            <button type="button" class="btn btn-link text-primary ml-3 p-0" style="border: none;">
+                <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/pngwing.com.png?t=2024-11-14T23%3A19%3A48.830Z" alt="Корзина" style="width: 40px; height: 40px;">
+            </button>
         </div>
     </nav>
 
     <!-- Album Cards -->
-    <div class="container mt-5 pt-4 album-card-container">
-        <div class="row">
+    <div class="container mt-5 pt-4">
+        <div class="row album-card-container">
             {% for album in albums %}
-                <div class="col-md-6 mb-4 border album-card">
-                    <div class="card mb-0 bg-light">
-                        <div class="mb-0 card-body">
-                            <div class="d-flex justify-content-between align-items-center">
+                <div class="col-md-12 mb-4 album-card">
+                    <div class="card">
+                        <div class="card-body bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-3" style="margin-left: -1.0rem; margin-right: -1.0rem;">
                                 <h6 class="card-title mb-0">{{ album.title }}</h6>
-                                <a href="#" class="btn btn-link p-0">Показать все</a>
+                                <button type="button" class="btn btn-success btn-sm" style="border-radius: 16px; padding: 0.0rem 0.1rem; font-size: 0.8rem; position: relative; top: 2px;">
+                                    <small style="position: relative; top: -2px;">Показать все</small>
+                                </button>
                             </div>
 
                             {% for item in items %}
                                 {% if item.album_id == album.id %}
-                                    <div class="card flex-row mb-2 border product-card">
+                                    <div class="card flex-row mb-3 product-card bg-white">
                                         <!-- Фото слева -->
-                                        <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 15%; height: auto; object-fit: cover;">
+                                        <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 100px; height: auto; object-fit: cover;">
 
                                         <!-- Информация справа -->
-                                        <div class="card-body">
+                                        <div class="card-body p-1">
                                             <!-- Заголовок товара -->
                                             <h6 class="card-title mb-1">{{ item.title }}</h6>
                                             <!-- Описание с усечением текста -->
-                                            <p class="card-text text-truncate" style="max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.description }}</p>
+                                            <p class="card-text mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 200px;">
+                                                {{ item.description }}
+                                            </p>
                                             <!-- Цена товара -->
                                             <p class="card-text"><strong>Цена:</strong> {{ item.price }} руб.</p>
                                         </div>
 
-                                        <!-- Кнопка добавления в корзину -->
-                                        <div class="card-body">
-                                            <a href="#" class="btn btn-light"><h1>+</h1></a>
+                                        <!-- Кнопка "+" -->
+                                        <div class="card-footer bg-white p-0 d-flex justify-content-center align-items-center" style="border-radius: 12px;">
+                                            <button type="button" class="btn btn-light btn-sm p-0"><h1>+</h1></button>
                                         </div>
                                     </div>
                                 {% endif %}
