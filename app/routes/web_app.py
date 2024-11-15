@@ -29,6 +29,7 @@ async def get_catalog(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse("index.html", {"request": request, "albums": albums, "items": filtered_items})
 
 
+# Регистрация пользователя
 @router.post("/register_user")
 async def register_user(request: Request, db: AsyncSession = Depends(get_db)):
     # Лог подтверждения получения запроса
