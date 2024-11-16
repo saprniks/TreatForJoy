@@ -33,7 +33,7 @@ class Cart(Base):
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    full_name = Column(String, nullable=True)
+    full_name = Column(String, nullable=False)
     username = Column(String, unique=True, nullable=True)
     avatar_url = Column(String, nullable=True)
     user_telegram_id = Column(Integer, unique=True, nullable=False)

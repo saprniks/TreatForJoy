@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Init Registration</title>
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Проверяем доступность Telegram Web App API
+        if (typeof Telegram === "undefined" || !Telegram.WebApp) {
+            console.error("Telegram WebApp API is not available. Make sure you open this page via Telegram.");
+            alert("Ошибка: Telegram WebApp API недоступен. Пожалуйста, откройте приложение через Telegram.");
+            return;
+        }
+
+        // Получаем данные пользователя
+        const user = Telegram.WebApp.initDataUnsafe.user;
+
+        if (!user) {
+            console.error("User data is not available.");
+            alert("Ошибка: данные пользователя недоступны.");
+            return;
+        }
+
+        console.log("Extracted user data:", user);
+
+        // Отправляем данные пользователя на сервер
+        try {
+            const response = await fetch('{{ web_app_url }}/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(user), // Передаем объект user напрямую
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log("Received next_page_url:", result.next_page_url);
+
+            // Переходим на следующую страницу
+            window.location.href = result.next_page_url;
+
+        } catch (error) {
+            console.error('Error during fetch:', error);
+        }
+    });
+</script>
+
+</head>
+<body>
+    <h1>Добро пожаловать на страницу регистрации!</h1>
+    <p>Данные загружаются...</p>
+</body>
+</html>
+

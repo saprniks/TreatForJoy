@@ -58,7 +58,7 @@
         <div class="row">
             {% for item in items %}
                 <div class="col-md-12 mb-4">
-                    <div class="card flex-row product-card bg-white">
+                    <div class="card flex-row product-card bg-white" onclick="window.location.href='/webapp/item/{{ item.id }}'">
                         <!-- Фото слева -->
                         <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 100px; height: auto; object-fit: cover;">
 

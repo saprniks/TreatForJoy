@@ -62,7 +62,7 @@
                     </button>
                     <div class="dropdown-menu" aria-labelledby="albumDropdown">
                         {% for album in albums %}
-                            <a class="dropdown-item" href="#" onclick="window.location.href='/webapp/album/{{ album.id }}?user_id={{ user_id }}'">{{ album.title }}</a>
+                            <a class="dropdown-item" href="#" onclick="window.location.href='/webapp/album/{{ album.id }}'">{{ album.title }}</a>
                         {% endfor %}
                     </div>
                 </div>
@@ -87,7 +87,7 @@
                         <div class="card-body bg-light">
                             <div class="d-flex justify-content-between align-items-center mb-3" style="margin-left: -1.0rem; margin-right: -1.0rem;">
                                 <h6 class="card-title mb-0">{{ album.title }}</h6>
-                                <button type="button" class="btn btn-success btn-sm" onclick="window.location.href='/webapp/album/{{ album.id }}?user_id={{ user_id }}'" style="border-radius: 16px; padding: 0.0rem 0.1rem; font-size: 0.8rem; position: relative; top: 2px;">
+                                <button type="button" class="btn btn-success btn-sm" onclick="window.location.href='/webapp/album/{{ album.id }}'" style="border-radius: 16px; padding: 0.0rem 0.1rem; font-size: 0.8rem; position: relative; top: 2px;">
                                     <small style="position: relative; top: -2px;">Показать все</small>
                                 </button>
                             </div>
@@ -128,42 +128,6 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<!--    <script>-->
-<!--        window.addEventListener('load', async () => {-->
-<!--            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {-->
-<!--                const user = window.Telegram.WebApp.initDataUnsafe.user;-->
-<!--                console.log("User data from Telegram:", user);-->
 
-<!--                // Проверка на наличие данных пользователя-->
-<!--                if (user) {-->
-<!--                    console.log("User ID:", user.id);-->
-<!--                    console.log("Username:", user.username);-->
-<!--                    console.log("First name:", user.first_name);-->
-<!--                    console.log("Last name:", user.last_name);-->
-<!--                    console.log("Avatar URL:", user.photo_url);-->
-
-<!--                    try {-->
-<!--                        const response = await fetch('/webapp/register_user', {-->
-<!--                            method: 'POST',-->
-<!--                            headers: {-->
-<!--                                'Content-Type': 'application/json'-->
-<!--                            },-->
-<!--                            body: JSON.stringify(user)-->
-<!--                        });-->
-
-<!--                        const result = await response.json();-->
-<!--                        console.log("User registration response:", result);-->
-
-<!--                    } catch (error) {-->
-<!--                        console.error('Error registering user:', error);-->
-<!--                    }-->
-<!--                } else {-->
-<!--                    console.warn("No user data found in Telegram Web App context");-->
-<!--                }-->
-<!--            } else {-->
-<!--                console.warn("Telegram Web App is not available.");-->
-<!--            }-->
-<!--        });-->
-<!--    </script>-->
 </body>
 </html>
