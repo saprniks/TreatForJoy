@@ -55,7 +55,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
         <div class="container">
 
-            <!-- Centered Dropdown -->
+            <!--  Dropdown -->
                 <div class="dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="albumDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Выбрать альбом
@@ -69,7 +69,7 @@
 
             <!-- Favorites Link -->
             <button type="button" class="btn btn-link text-primary ml-3 p-0" style="border: none;">
-                <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/heart_full.png?t=2024-11-14T23%3A25%3A45.733Z" alt="Избранное" style="width: 40px; height: 40px;">
+                <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/heart_full.png?t=2024-11-14T23%3A25%3A45.733Z" alt="Избранное" style="width: 40px; height: 40px;" onclick="window.location.href='/webapp/favorites?user_id={{ user_id }}'">
             </button>
             <!-- Cart Button -->
             <button type="button" class="btn btn-link text-primary ml-3 p-0" style="border: none;">
@@ -94,7 +94,7 @@
 
                             {% for item in items %}
                                 {% if item.album_id == album.id %}
-                                    <div class="card flex-row mb-3 product-card bg-white" onclick="window.location.href='/webapp/item/{{ item.id }}'">
+                                    <div class="card flex-row mb-3 product-card bg-white" onclick="window.location.href='/webapp/item/{{ item.id }}?user_id={{ user_id }}'">
                                         <!-- Фото слева -->
                                         <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 100px; height: auto; object-fit: cover;">
 

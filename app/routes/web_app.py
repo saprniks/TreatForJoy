@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.crud import album_crud, user_crud, item_crud, photo_crud
+from app.crud import album_crud, user_crud, item_crud, photo_crud, favorites_crud
 from app.utils.db import get_db
 from fastapi.templating import Jinja2Templates
 import logging
@@ -95,13 +95,66 @@ async def view_album(
 
 
 @router.get("/item/{item_id}", response_class=HTMLResponse)
-async def view_item(item_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+async def view_item(item_id: int,
+                    user_id: int,  # Add user_id as a query parameter
+                    request: Request,
+                    db: AsyncSession = Depends(get_db)):
     # Retrieve the item and its photos by item_id
     item = await item_crud.get_item_by_id(db, item_id)
     photos = await photo_crud.get_photos_for_item(db, item_id)
 
+    is_fav = await favorites_crud.is_item_in_favorites(db, user_id, item_id)
+
     # Render item.html with the photos and item data
-    return templates.TemplateResponse("item.html", {"request": request, "item": item, "photos": photos})
+    return templates.TemplateResponse("item.html", {"request": request, "item": item, "photos": photos, "is_fav": is_fav, "user_id": user_id})
+
+
+@router.post("/api/favorites/toggle")
+async def toggle_favorite(
+        request: Request,
+        db: AsyncSession = Depends(get_db)
+):
+    data = await request.json()
+    user_id = data.get("user_id")
+    item_id = data.get("item_id")
+
+    if not user_id or not item_id:
+        return {"error": "Invalid input"}, 400
+
+    # Call the toggle function from CRUD
+    action = await favorites_crud.toggle_favorite(db, user_id, item_id)
+
+    # Determine the new state
+    is_fav = action == "added"
+
+    return {"is_fav": is_fav}
+
+
+@router.get("/favorites", response_class=HTMLResponse)
+async def view_favorites(
+    user_id: int,  # Получаем user_id из параметров URL
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Страница избранного для текущего пользователя.
+    """
+    # Получаем все избранные изделия пользователя
+    favorite_items = await favorites_crud.get_favorites_items(db, user_id)
+
+    # Добавляем URL первой фотографии для каждого изделия
+    for item in favorite_items:
+        photo = await photo_crud.get_first_photo_for_item(db, item.id)
+        item.photo_url = photo.url
+
+    # Логируем процесс и рендерим страницу
+    logger.info(f"Rendering favorites.html for user_id: {user_id}")
+    response = templates.TemplateResponse(
+        "favorites.html", {"request": request, "items": favorite_items, "user_id": user_id}
+    )
+    # Добавляем заголовки, запрещающие кеширование
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 # Регистрация пользователя

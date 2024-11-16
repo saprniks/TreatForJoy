@@ -4,11 +4,9 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ album.title }}</title>
+    <title>Избранное</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMdqH/lf4x7gFlCqFTG8iN5L8zjX0XdEF6gE6oE" crossorigin="anonymous">
     <style>
         .card {
             border: none;
@@ -41,9 +39,9 @@
             <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/back_arrow.png?t=2024-11-15T02%3A10%3A29.332Z" onclick="history.back()" alt="Назад" style="width: 40px; height: 40px;">
         </button>
 
-        <!-- Album Title -->
+        <!-- Page Title -->
         <p class="mb-0 text-center" style="flex: 1; margin: 0 1rem; font-size: 1.1rem; line-height: 1.2; white-space: normal; word-break: break-word;">
-            {{ album.title }}
+            Избранное
         </p>
 
         <!-- Cart Button -->
@@ -53,8 +51,9 @@
     </div>
 </nav>
 
-    <!-- Album Items -->
-    <div class="container mt-5 pt-4 bg-light">
+<!-- Favorites Items -->
+<div class="container mt-5 pt-4 bg-light">
+    {% if items %}
         <div class="row">
             {% for item in items %}
                 <div class="col-md-12 mb-4">
@@ -82,11 +81,18 @@
                 </div>
             {% endfor %}
         </div>
-    </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <h5>Ваш список избранного пуст.</h5>
+            <p>Вы можете добавлять изделия в избранное, нажав на сердечко вверху карточки изделия.</p>
+            <p>Перейдите к каталогу и начните выбирать ваши любимые изделия!</p>
+        </div>
+    {% endif %}
+</div>
 
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

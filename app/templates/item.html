@@ -50,10 +50,43 @@
             <button type="button" class="btn btn-link text-primary p-0" style="border: none;">
                 <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/back_arrow.png?t=2024-11-15T02%3A10%3A29.332Z" onclick="history.back()" alt="Назад" style="width: 40px; height: 40px;">
             </button>
-            <!-- Favorites Link -->
-            <button type="button" class="btn btn-link text-primary ml-3 p-0" style="border: none;">
-                <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/heart_empty.png?t=2024-11-15T15%3A06%3A20.781Z" alt="Избранное" style="width: 40px; height: 40px;">
+
+            <!-- Favorites Button -->
+            <button id="favorite-button" type="button" class="btn btn-link text-primary ml-3 p-0" style="border: none;" onclick="toggleFavorite()">
+                <img id="favorite-icon" src="{{ 'https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/heart_full.png?t=2024-11-16T13%3A23%3A34.895Z' if is_fav else 'https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/heart_empty.png?t=2024-11-16T13%3A23%3A14.945Z' }}"
+                     alt="Избранное"
+                     style="width: 40px; height: 40px;">
             </button>
+                    <script>
+                        async function toggleFavorite() {
+                            const itemId = {{ item.id }};
+                            const userId = {{ user_id }};
+                            const button = document.getElementById('favorite-button');
+                            const icon = document.getElementById('favorite-icon');
+
+                            try {
+                                const response = await fetch(`/webapp/api/favorites/toggle`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ user_id: userId, item_id: itemId })
+                                });
+
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    // Update the icon based on the new state
+                                    icon.src = data.is_fav
+                                        ? 'https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/heart_full.png?t=2024-11-16T13%3A23%3A34.895Z'
+                                        : 'https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/heart_empty.png?t=2024-11-16T13%3A23%3A14.945Z';
+                                } else {
+                                    console.error('Failed to toggle favorite');
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                            }
+                        }
+                    </script>
+
+
             <!-- Cart Button -->
             <button type="button" class="btn btn-link text-primary p-0" style="border: none;">
                 <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/pngwing.com.png?t=2024-11-14T23%3A19%3A48.830Z" alt="Корзина" style="width: 40px; height: 40px;">

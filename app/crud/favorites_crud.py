@@ -1,11 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.models.models import favorites_table
+from app.models.models import favorites_table, Item
 from sqlalchemy import select, delete, insert
 
 
-async def get_favorites(db: AsyncSession, user_id: int):
-    stmt = select(favorites_table).where(favorites_table.c.user_id == user_id)
+async def get_favorites_items(db: AsyncSession, user_id: int):
+    """
+    Возвращает список избранных изделий для пользователя.
+    """
+    stmt = select(Item).join(favorites_table).where(favorites_table.c.user_id == user_id)
     result = await db.execute(stmt)
     return result.scalars().all()
 
