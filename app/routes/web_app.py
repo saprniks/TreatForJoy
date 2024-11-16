@@ -94,7 +94,6 @@ async def view_album(
     )
 
 
-
 @router.get("/item/{item_id}", response_class=HTMLResponse)
 async def view_item(item_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     # Retrieve the item and its photos by item_id
