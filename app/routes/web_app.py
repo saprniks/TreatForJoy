@@ -173,6 +173,40 @@ async def view_favorites(
     return response
 
 
+@router.get("/cart", response_class=HTMLResponse)
+async def view_cart(user_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+    """
+    Страница корзины для пользователя.
+    """
+    # Получаем все товары в корзине пользователя
+    cart_items = await cart_crud.get_cart_items_for_user(db, user_id)
+
+    # Добавляем URL первой фотографии для каждого изделия
+    for cart_item in cart_items:
+        photo = await photo_crud.get_first_photo_for_item(db, cart_item.item.id)
+        cart_item.item.photo_url = photo.url
+
+    # Рассчитываем общую сумму
+    total_price = sum(cart_item.item.price * cart_item.quantity for cart_item in cart_items)
+
+    # Sort list of cart items by their item.id in ascending order
+    cart_items.sort(key=lambda x: x.item.id)
+
+    # Добавляем заголовки, запрещающие кеширование
+    response = templates.TemplateResponse(
+        "cart.html",
+        {
+            "request": request,
+            "cart_items": cart_items,
+            "total_price": total_price,
+            "user_id": user_id,
+        }
+    )
+    response.headers["Cache-Control"] = "no-store"
+    # Рендерим страницу корзины
+    return response
+
+
 @router.post("/api/cart/update")
 async def update_cart(
     request: Request,
@@ -214,4 +248,5 @@ async def update_quantity(data: dict, db: AsyncSession = Depends(get_db)):
 
     new_quantity = await cart_crud.update_quantity(db, user_id, item_id, action)
     return {"quantity": new_quantity}
+
 

@@ -64,7 +64,7 @@
 
             <!-- Cart Button -->
             <button type="button" class="btn btn-link text-primary p-0" style="border: none;">
-                <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/pngwing.com.png?t=2024-11-14T23%3A19%3A48.830Z" alt="Корзина" style="width: 40px; height: 40px;">
+                <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/pngwing.com.png?t=2024-11-14T23%3A19%3A48.830Z" alt="Корзина" style="width: 40px; height: 40px;" onclick="window.location.href='/webapp/cart?user_id={{ user_id }}'">
             </button>
         </div>
     </nav>
@@ -98,13 +98,13 @@
         <p class="text-muted mb-1"><small>Артикул: {{ item.sku if item.sku else "NoN/Null" }}</small></p>
         <h4 class="mb-3">{{ item.title }}</h4>
         <p class="mb-3">{{ item.description }}</p>
-        <p class="mb-4"><strong>Цена:</strong> {{ item.price }} руб.</p>
+        <p class="mb-4"><strong>Цена:</strong> {{ item.price }} ₽</p>
 
         <!-- Actions -->
         <div class="d-flex justify-content-between align-items-center mb-4">
 
             <!-- Contact Button -->
-            <a href="#" id="contact-master-btn" class="btn btn-primary" target="_blank">Написать мастеру</a>
+            <a href="#" id="contact-master-btn" class="btn btn-primary">Написать мастеру</a>
 
             <!-- Quantity Control -->
             <div class="d-flex align-items-center quantity-control">
@@ -195,44 +195,6 @@
         }
 
 
-  // Формирование ссылки для связи с мастером
-    function setupContactMasterLink() {
-        const userFullName = "{{ user.full_name }}";
-        const userUsername = "{{ user.username }}";
-        const itemTitle = "{{ item.title }}";
-        const itemDescription = "{{ item.description or 'Нет описания' }}";
-        const itemPrice = "{{ item.price }}";
-        const albumTitle = "{{ album.title }}"; // Название альбома
-        const itemSku = "{{ item.sku or 'Не указан' }}";
-
-        // Собираем URL всех фото
-        const photoUrls = [
-            {% for photo in photos %}
-                "{{ photo.url }}",
-            {% endfor %}
-        ].join('\n');
-
-        // Формирование текста сообщения
-        const message = `
-            Пользователь: ${userFullName} (@${userUsername || 'Нет username'})
-            Изделие: ${itemTitle}
-            Описание: ${itemDescription}
-            Цена: ${itemPrice} руб.
-            Альбом: ${albumTitle}
-            SKU: ${itemSku}
-            Фото:
-            ${photoUrls}
-        `.trim();
-
-        // Создаем ссылку для Telegram
-        const telegramUrl = `https://t.me/Maydo_me?text=${encodeURIComponent(message)}`;
-
-        // Обновляем ссылку кнопки
-        document.getElementById('contact-master-btn').href = telegramUrl;
-    }
-
-    // Устанавливаем ссылку при загрузке страницы
-    document.addEventListener('DOMContentLoaded', setupContactMasterLink);
     </script>
 
     <!-- Bootstrap JS and dependencies -->

@@ -75,3 +75,6 @@ async def update_quantity(db: AsyncSession, user_id: int, item_id: int, action: 
     await db.commit()
     await db.refresh(cart_item)
     return cart_item.quantity if cart_item else 0
+
+
+

@@ -73,7 +73,7 @@
             </button>
             <!-- Cart Button -->
             <button type="button" class="btn btn-link text-primary ml-3 p-0" style="border: none;">
-                <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/pngwing.com.png?t=2024-11-14T23%3A19%3A48.830Z" alt="Корзина" style="width: 40px; height: 40px;">
+                <img src="https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/pngwing.com.png?t=2024-11-14T23%3A19%3A48.830Z" alt="Корзина" style="width: 40px; height: 40px;" onclick="window.location.href='/webapp/cart?user_id={{ user_id }}'">
             </button>
         </div>
     </nav>
@@ -107,7 +107,7 @@
                                                 {{ item.description }}
                                             </p>
                                             <!-- Цена товара -->
-                                            <p class="card-text"><strong>Цена:</strong> {{ item.price }} руб.</p>
+                                            <p class="card-text"><strong>Цена:</strong> {{ item.price }} ₽</p>
                                         </div>
 
                                         <!-- Кнопка "+" -->
