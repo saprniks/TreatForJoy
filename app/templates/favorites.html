@@ -75,7 +75,7 @@
 
                         <!-- Кнопка "+" -->
                         <div class="card-footer bg-white p-0 d-flex justify-content-center align-items-center" style="border-radius: 12px;">
-                            <button type="button" class="btn btn-light btn-sm p-0"><h1>+</h1></button>
+                            <button type="button" class="btn btn-light btn-sm p-0" onclick="addToCart(event, {{ user_id }}, {{ item.id }})"><h1>+</h1></button>
                         </div>
                     </div>
                 </div>
@@ -89,6 +89,32 @@
         </div>
     {% endif %}
 </div>
+
+<!-- JS Section -->
+<script>
+    async function addToCart(event, userId, itemId) {
+        // Останавливаем распространение события
+        event.stopPropagation();
+
+        try {
+            const response = await fetch('/webapp/api/cart/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, item_id: itemId })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert(`Товар успешно добавлен в корзину. Количество: ${result.quantity}`);
+            } else {
+                alert(`Ошибка: ${result.detail || 'Не удалось обновить корзину'}`);
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            alert('Ошибка при добавлении товара в корзину');
+        }
+    }
+</script>
 
 <!-- Bootstrap JS and dependencies -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

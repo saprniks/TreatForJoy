@@ -202,37 +202,28 @@
         const itemTitle = "{{ item.title }}";
         const itemDescription = "{{ item.description or 'Нет описания' }}";
         const itemPrice = "{{ item.price }}";
-        const albumTitle = "{{ album.title }}"; // Название альбома
+        const albumTitle = "{{ album.title }}"; // Добавить переменную с названием альбома
         const itemSku = "{{ item.sku or 'Не указан' }}";
 
-        // Собираем URL всех фото
-        const photoUrls = [
-            {% for photo in photos %}
-                "{{ photo.url }}",
-            {% endfor %}
-        ].join('\n');
+            // Формирование текста сообщения
+            const message = `
+                Пользователь: ${userFullName} (@${userUsername || 'Нет username'})
+                Изделие: ${itemTitle}
+                Описание: ${itemDescription}
+                Цена: ${itemPrice} руб.
+                Альбом: ${albumTitle}
+                SKU: ${itemSku}
+            `.trim();
 
-        // Формирование текста сообщения
-        const message = `
-            Пользователь: ${userFullName} (@${userUsername || 'Нет username'})
-            Изделие: ${itemTitle}
-            Описание: ${itemDescription}
-            Цена: ${itemPrice} руб.
-            Альбом: ${albumTitle}
-            SKU: ${itemSku}
-            Фото:
-            ${photoUrls}
-        `.trim();
+            // Создаем ссылку для Telegram
+            const telegramUrl = `https://t.me/YOUR_TELEGRAM_USERNAME?text=${encodeURIComponent(message)}`;
 
-        // Создаем ссылку для Telegram
-        const telegramUrl = `https://t.me/Maydo_me?text=${encodeURIComponent(message)}`;
+            // Обновляем ссылку кнопки
+            document.getElementById('contact-master-btn').href = telegramUrl;
+        }
 
-        // Обновляем ссылку кнопки
-        document.getElementById('contact-master-btn').href = telegramUrl;
-    }
-
-    // Устанавливаем ссылку при загрузке страницы
-    document.addEventListener('DOMContentLoaded', setupContactMasterLink);
+        // Устанавливаем ссылку при загрузке страницы
+        document.addEventListener('DOMContentLoaded', setupContactMasterLink);
     </script>
 
     <!-- Bootstrap JS and dependencies -->

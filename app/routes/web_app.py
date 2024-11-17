@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.crud import album_crud, user_crud, item_crud, photo_crud, favorites_crud
+from app.crud import album_crud, user_crud, item_crud, photo_crud, favorites_crud, cart_crud
 from app.utils.db import get_db
 from fastapi.templating import Jinja2Templates
 import logging
 import urllib.parse
 import os
 from dotenv import load_dotenv
+
 
 load_dotenv()  # Загружаем переменные из .env
 WEB_APP_URL = os.getenv("WEB_APP_URL")
@@ -95,18 +96,33 @@ async def view_album(
 
 
 @router.get("/item/{item_id}", response_class=HTMLResponse)
-async def view_item(item_id: int,
-                    user_id: int,  # Add user_id as a query parameter
-                    request: Request,
-                    db: AsyncSession = Depends(get_db)):
+async def view_item(item_id: int, user_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     # Retrieve the item and its photos by item_id
     item = await item_crud.get_item_by_id(db, item_id)
     photos = await photo_crud.get_photos_for_item(db, item_id)
 
+    # Check if the item is in the user's favorites
     is_fav = await favorites_crud.is_item_in_favorites(db, user_id, item_id)
 
-    # Render item.html with the photos and item data
-    return templates.TemplateResponse("item.html", {"request": request, "item": item, "photos": photos, "is_fav": is_fav, "user_id": user_id})
+    # Retrieve the album title
+    album = await album_crud.get_album_by_id(db, item.album_id)
+
+    # Retrieve user information
+    user = await user_crud.get_user_by_id(db, user_id)
+
+    # Render item.html with the photos, item data, and user information
+    return templates.TemplateResponse(
+        "item.html",
+        {
+            "request": request,
+            "item": item,
+            "photos": photos,
+            "is_fav": is_fav,
+            "user_id": user_id,
+            "album": album,  # Передаем название альбома
+            "user": user,    # Добавляем информацию о пользователе
+        },
+    )
 
 
 @router.post("/api/favorites/toggle")
@@ -157,20 +173,45 @@ async def view_favorites(
     return response
 
 
-# Регистрация пользователя
-# @router.post("/register_user")
-# async def register_user(request: Request, db: AsyncSession = Depends(get_db)):
-#     # Лог подтверждения получения запроса
-#     logging.info("Received POST request to /register_user")
-#
-#     # Получаем данные пользователя из запроса
-#     user_data = await request.json()
-#     logging.info(f"Received user data: {user_data}")
-#
-#     # Вызываем функцию для проверки и добавления пользователя, если он не существует
-#     user = await user_crud.add_user_if_not_exists(db, user_data)
-#
-#     await get_catalog(user_id=user.id, request=request, db=db)
-#
-#
-#
+@router.post("/api/cart/update")
+async def update_cart(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Обновление корзины для пользователя.
+    """
+    data = await request.json()
+    user_id = data.get("user_id")
+    item_id = data.get("item_id")
+
+    if not user_id or not item_id:
+        raise HTTPException(status_code=400, detail="Invalid input")
+
+    # Вызываем CRUD функцию
+    cart_item = await cart_crud.add_or_update_cart_item(db, user_id, item_id)
+
+    return {"status": "success", "quantity": cart_item.quantity}
+
+
+@router.post("/api/cart/get_quantity")
+async def get_quantity(data: dict, db: AsyncSession = Depends(get_db)):
+    user_id = data.get('user_id')
+    item_id = data.get('item_id')
+
+    quantity = await cart_crud.get_quantity(db, user_id, item_id)
+    return {"quantity": quantity}
+
+
+@router.post("/api/cart/update_quantity")
+async def update_quantity(data: dict, db: AsyncSession = Depends(get_db)):
+    user_id = data.get('user_id')
+    item_id = data.get('item_id')
+    action = data.get('action')  # "increase" or "decrease"
+
+    if action not in ["increase", "decrease"]:
+        raise HTTPException(status_code=400, detail="Invalid action")
+
+    new_quantity = await cart_crud.update_quantity(db, user_id, item_id, action)
+    return {"quantity": new_quantity}
+
