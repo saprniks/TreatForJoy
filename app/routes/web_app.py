@@ -69,8 +69,26 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
         photo = await photo_crud.get_first_photo_for_item(db, item.id)
         item.photo_url = photo.url
 
-    # Передаем список альбомов и отфильтрованные изделия в шаблон
-    return templates.TemplateResponse("index.html", {"request": request, "albums": albums, "items": filtered_items, "user_id": user_id})
+    # Получаем корзину пользователя
+    cart_items = await cart_crud.get_cart_items_for_user(db, user_id)
+
+    # Создаем словарь {item_id: {"quantity": quantity}}
+    cart_data = {cart_item.item.id: {"quantity": cart_item.quantity} for cart_item in cart_items}
+
+    # рендерим страницу
+    response = templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "albums": albums,
+            "items": filtered_items,
+            "user_id": user_id,
+            "cart_items": cart_data,  # Передаем данные корзины
+        }
+    )
+    # Добавляем заголовки, запрещающие кеширование
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @router.get("/album/{album_id}", response_class=HTMLResponse)
@@ -250,3 +268,33 @@ async def update_quantity(data: dict, db: AsyncSession = Depends(get_db)):
     return {"quantity": new_quantity}
 
 
+@router.post("/api/cart/delete_item")
+async def delete_cart_item(data: dict, db: AsyncSession = Depends(get_db)):
+    """
+    Удаление товара из корзины пользователя.
+    """
+    user_id = data.get('user_id')
+    item_id = data.get('item_id')
+
+    if not user_id or not item_id:
+        raise HTTPException(status_code=400, detail="Invalid input")
+
+    # Удаляем товар из корзины
+    await cart_crud.delete_cart_item(db, user_id, item_id)
+    return {"status": "success"}
+
+
+@router.post("/api/cart/remove_item")
+async def remove_item_from_cart(data: dict, db: AsyncSession = Depends(get_db)):
+    """
+    Удаление товара из корзины, если количество стало 0.
+    """
+    user_id = data.get('user_id')
+    item_id = data.get('item_id')
+
+    if not user_id or not item_id:
+        raise HTTPException(status_code=400, detail="Invalid input")
+
+    # Удаляем товар из корзины
+    await cart_crud.delete_cart_item(db, user_id, item_id)
+    return {"status": "success"}

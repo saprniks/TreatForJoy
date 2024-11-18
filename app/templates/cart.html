@@ -58,7 +58,7 @@
             {% for cart_item in cart_items %}
             {% set item = cart_item.item %}
 
-            <div class="col-md-12 mb-4">
+            <div class="col-md-12 mb-4 cart-item" data-item-id="{{ item.id }}">
                 <div class="card flex-row product-card bg-white" onclick="window.location.href='/webapp/item/{{ item.id }}?user_id={{ user_id }}'">
                     <!-- Фото слева -->
                     <img src="{{ item.photo_url }}" class="card-img-left" alt="{{ item.title }}" style="width: 100px; height: auto; object-fit: cover;">
@@ -85,6 +85,9 @@
                     <button class="btn btn-light border increase-btn" data-item-id="{{ item.id }}">
                         +
                     </button>
+                    <button class="btn btn-light border remove-btn ml-5" data-item-id="{{ item.id }}">
+                        Удалить
+                    </button>
                 </div>
             </div>
             {% endfor %}
@@ -98,9 +101,9 @@
             </div>
 
             <!-- Contact Button -->
-<div class="container d-flex justify-content-center">
-    <a href="#" id="contact-master-btn" class="btn btn-primary mb-5">Обсудить заказ с мастером</a>
-</div>
+            <div class="container d-flex justify-content-center">
+                <a href="#" id="contact-master-btn" class="btn btn-primary mb-5">Обсудить заказ с мастером</a>
+            </div>
 
         </div>
     {% else %}
@@ -160,6 +163,37 @@
             console.error("Ошибка при обновлении количества:", error);
         }
     }
+
+    // Логика для удаления товара
+    async function deleteCartItem(itemId) {
+        const userId = {{ user_id }};
+        try {
+            const response = await fetch(`/webapp/api/cart/delete_item`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: userId, item_id: itemId }),
+            });
+
+            if (response.ok) {
+                document.querySelector(`.cart-item[data-item-id="${itemId}"]`).remove();
+                recalculateTotalPrice();
+            } else {
+                console.error("Ошибка при удалении товара:", await response.json());
+            }
+        } catch (error) {
+            console.error("Ошибка при удалении товара:", error);
+        }
+    }
+
+    document.querySelectorAll(".remove-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+            const itemId = parseInt(button.dataset.itemId, 10);
+            const userConfirmed = confirm("Вы уверены, что хотите удалить этот товар из корзины?");
+            if (userConfirmed) {
+                deleteCartItem(itemId);
+            }
+        });
+    });
 
     // Initial calculation of total price
     recalculateTotalPrice();

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from sqlalchemy import update
+from sqlalchemy import delete, update
 from app.models.models import Cart
 from datetime import datetime
 
@@ -77,4 +77,11 @@ async def update_quantity(db: AsyncSession, user_id: int, item_id: int, action: 
     return cart_item.quantity if cart_item else 0
 
 
-
+async def delete_cart_item(db: AsyncSession, user_id: int, item_id: int):
+    stmt = delete(Cart).where(
+        (Cart.user_id == user_id) &
+        (Cart.item_id == item_id) &
+        (Cart.checkout_timestamp == None)
+    )
+    await db.execute(stmt)
+    await db.commit()
