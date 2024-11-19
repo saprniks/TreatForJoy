@@ -23,6 +23,7 @@ SessionLocal = sessionmaker(
     expire_on_commit=False
 )
 
+
 # Функция для получения сессии
 async def get_db():
     async with SessionLocal() as session:

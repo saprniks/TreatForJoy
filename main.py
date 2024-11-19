@@ -1,6 +1,7 @@
 import logging
 import os
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from app.models.models import Base
 from app.utils.db import engine
@@ -24,6 +25,11 @@ logger = logging.getLogger(__name__)
 
 # Настройка FastAPI приложения
 app = FastAPI()
+
+
+# Mount static files globally
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 
 # Подключение маршрутов веб-приложения
 app.include_router(web_app.router, prefix="/webapp")

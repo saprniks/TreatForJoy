@@ -28,6 +28,22 @@
             border: none;
             border-radius: 12px;
         }
+        .increase-btn {
+            font-size: 32px; /* Увеличивает размер знака "+" */
+            align-items: center; /* Для точного выравнивания */
+            line-height: 0.6;  /* Уменьшает отступы внутри */
+            vertical-align: center; /* Выравнивает знак по вертикали */
+            padding-left: 10px; /* Добавляет отступ слева */
+            padding-top: 0px; /* Добавляет отступ сверху */
+        }
+        .decrease-btn {
+            font-size: 32px; /* Увеличивает размер знака "+" */
+            align-items: center; /* Для точного выравнивания */
+            line-height: 0.6;  /* Уменьшает отступы внутри */
+            vertical-align: center; /* Выравнивает знак по вертикали */
+            padding-left: 10px; /* Добавляет отступ слева */
+            padding-top: 0px; /* Добавляет отступ сверху */
+        }
     </style>
 </head>
 <body>
@@ -66,10 +82,10 @@
                     <!-- Информация справа -->
                     <div class="card-body p-1">
                         <!-- Заголовок товара -->
-                        <h6 class="card-title mb-1">{{ item.title }}</h6>
+                        <h6 class="card-title mb-1">{{ item.title|striptags  }}</h6>
                         <!-- Описание с усечением текста -->
                         <p class="card-text mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: auto;">
-                            {{ item.description }}
+                            {{ item.description|striptags  }}
                         </p>
                         <!-- Цена товара -->
                         <p class="card-text"><strong>Цена:</strong> <span class="item-price" data-item-id="{{ item.id }}">{{ item.price }}</span> ₽</p>
@@ -79,13 +95,13 @@
                 <!-- Quantity Control -->
                 <div class="d-flex align-items-center quantity-control">
                     <button class="btn btn-light border decrease-btn" data-item-id="{{ item.id }}">
-                        -
+                        –
                     </button>
                     <span class="mx-3 quantity-span" data-item-id="{{ item.id }}">{{ cart_item.quantity }}</span>
                     <button class="btn btn-light border increase-btn" data-item-id="{{ item.id }}">
                         +
                     </button>
-                    <button class="btn btn-light border remove-btn ml-5" data-item-id="{{ item.id }}">
+                    <button class="btn-sm btn-light border remove-btn ml-5" data-item-id="{{ item.id }}">
                         Удалить
                     </button>
                 </div>
@@ -102,7 +118,7 @@
 
             <!-- Contact Button -->
             <div class="container d-flex justify-content-center">
-                <a href="#" id="contact-master-btn" class="btn btn-primary mb-5">Обсудить заказ с мастером</a>
+                <a href="#" id="contact-master-btn" class="btn btn-primary mb-5" onclick="openTelegramChat()">Обсудить заказ с мастером</a>
             </div>
 
         </div>
@@ -116,6 +132,50 @@
 </div>
 
 <!-- JavaScript -->
+
+<script>
+    function openTelegramChat() {
+        // Base Telegram URL
+        const baseTelegramURL = "https://t.me/Maydo_me";
+
+        // Initialize the message content
+        let messageToSend = "";
+
+        // Iterate over each cart item to construct the message
+        document.querySelectorAll(".cart-item").forEach((cartItem) => {
+            const itemId = cartItem.dataset.itemId;
+            const photoUrl = cartItem.querySelector(".card-img-left").src;
+            const itemTitle = cartItem.querySelector(".card-title").innerText;
+            const itemPrice = cartItem.querySelector(`.item-price[data-item-id="${itemId}"]`).innerText;
+            const itemQuantity = cartItem.querySelector(`.quantity-span[data-item-id="${itemId}"]`).innerText;
+            const itemSku = cartItem.querySelector(".card-text").innerText.match(/Артикул: (.+)/)?.[1] || "NoN/Null";
+
+            // Append item details to the message
+            messageToSend += `
+${photoUrl}
+Артикул: ${itemSku}
+Название: ${itemTitle}
+Цена: ${itemPrice} ₽
+Количество: ${itemQuantity}
+**********
+            `.trim() + "\n";
+        });
+
+        // Append the total price at the end
+        const totalPrice = document.getElementById("total-price").innerText;
+        messageToSend += `\nПредварительная цена: ${totalPrice} ₽`;
+
+        // Encode the message
+        const encodedMessage = encodeURIComponent(messageToSend);
+
+        // Construct the full URL
+        const fullURL = `${baseTelegramURL}?text=${encodedMessage}`;
+
+        // Open the Telegram chat with the message
+        window.open(fullURL, "_blank");
+    }
+</script>
+
 <script>
     function recalculateTotalPrice() {
         let totalPrice = 0;

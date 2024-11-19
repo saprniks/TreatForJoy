@@ -97,14 +97,14 @@
     <div class="container item-details">
         <p class="text-muted mb-1"><small>Артикул: {{ item.sku if item.sku else "NoN/Null" }}</small></p>
         <h4 class="mb-3">{{ item.title }}</h4>
-        <p class="mb-3">{{ item.description }}</p>
+        <p class="mb-3">{{ item.description|safe }}</p>
         <p class="mb-4"><strong>Цена:</strong> {{ item.price }} ₽</p>
 
         <!-- Actions -->
         <div class="d-flex justify-content-between align-items-center mb-4">
 
             <!-- Contact Button -->
-            <a href="#" id="contact-master-btn" class="btn btn-primary">Написать мастеру</a>
+            <a href="#" id="contact-master-btn" class="btn btn-primary" onclick="openTelegramChat()">Написать мастеру</a>
 
             <!-- Quantity Control -->
             <div class="d-flex align-items-center quantity-control">
@@ -120,6 +120,35 @@
     </div>
 
     <!-- JS Section -->
+
+<script>
+    function openTelegramChat() {
+        // Get the first photo URL
+        const photoUrl = "{{ photos[0].url }}";
+
+        // Construct the message
+        const messageToSend = `
+${photoUrl}
+Артикул: {{ item.sku if item.sku else "NoN/Null" }}
+{{ item.title }}
+{{ item.description|safe }}
+Цена: {{ item.price }} ₽
+        `.trim(); // Trim removes unnecessary spaces or newlines at the start/end
+
+        // Encode the message for URL
+        const encodedMessage = encodeURIComponent(messageToSend);
+
+        // Define the base Telegram URL
+        const baseTelegramURL = "https://t.me/Maydo_me";
+
+        // Construct the full URL
+        const fullURL = `${baseTelegramURL}?text=${encodedMessage}`;
+
+        // Open the URL
+        window.open(fullURL, "_blank");
+    }
+</script>
+
     <script>
         const userId = {{ user_id }};
         const itemId = {{ item.id }};

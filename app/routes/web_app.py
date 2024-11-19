@@ -5,6 +5,7 @@ from sqlalchemy.future import select
 from app.crud import album_crud, user_crud, item_crud, photo_crud, favorites_crud, cart_crud
 from app.utils.db import get_db
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import logging
 import urllib.parse
 import os
@@ -17,9 +18,11 @@ WEB_APP_URL = os.getenv("WEB_APP_URL")
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
+
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
 
 @router.get("/", response_class=HTMLResponse)
 async def init_reg_page():
@@ -91,6 +94,40 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
     return response
 
 
+@router.get("/favorites", response_class=HTMLResponse)
+async def view_favorites(
+    user_id: int,  # Получаем user_id из параметров URL
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Страница избранного для текущего пользователя.
+    """
+    # Получаем все избранные изделия пользователя
+    favorite_items = await favorites_crud.get_favorites_items(db, user_id)
+
+    # Добавляем URL первой фотографии для каждого изделия
+    for item in favorite_items:
+        photo = await photo_crud.get_first_photo_for_item(db, item.id)
+        item.photo_url = photo.url
+
+    # Получаем корзину пользователя
+    cart_items = await cart_crud.get_cart_items_for_user(db, user_id)
+
+    # Создаем словарь {item_id: {"quantity": quantity}}
+    cart_data = {cart_item.item.id: {"quantity": cart_item.quantity} for cart_item in cart_items}
+
+
+    # Логируем процесс и рендерим страницу
+    logger.info(f"Rendering favorites.html for user_id: {user_id}")
+    response = templates.TemplateResponse(
+        "favorites.html", {"request": request, "items": favorite_items, "user_id": user_id, "cart_items": cart_data}
+    )
+    # Добавляем заголовки, запрещающие кеширование
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @router.get("/album/{album_id}", response_class=HTMLResponse)
 async def view_album(
     album_id: int,
@@ -107,10 +144,19 @@ async def view_album(
         photo = await photo_crud.get_first_photo_for_item(db, item.id)
         item.photo_url = photo.url
 
-    # Render album.html with the album, items, and user_id
-    return templates.TemplateResponse(
-        "album.html", {"request": request, "album": album, "items": items, "user_id": user_id}
+    # Получаем корзину пользователя
+    cart_items = await cart_crud.get_cart_items_for_user(db, user_id)
+
+    # Создаем словарь {item_id: {"quantity": quantity}}
+    cart_data = {cart_item.item.id: {"quantity": cart_item.quantity} for cart_item in cart_items}
+
+    response = templates.TemplateResponse(
+        "album.html", {"request": request, "album": album, "items": items, "user_id": user_id, "cart_items": cart_data}
     )
+
+    # Добавляем заголовки, запрещающие кеширование
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @router.get("/item/{item_id}", response_class=HTMLResponse)
@@ -164,31 +210,6 @@ async def toggle_favorite(
     return {"is_fav": is_fav}
 
 
-@router.get("/favorites", response_class=HTMLResponse)
-async def view_favorites(
-    user_id: int,  # Получаем user_id из параметров URL
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Страница избранного для текущего пользователя.
-    """
-    # Получаем все избранные изделия пользователя
-    favorite_items = await favorites_crud.get_favorites_items(db, user_id)
-
-    # Добавляем URL первой фотографии для каждого изделия
-    for item in favorite_items:
-        photo = await photo_crud.get_first_photo_for_item(db, item.id)
-        item.photo_url = photo.url
-
-    # Логируем процесс и рендерим страницу
-    logger.info(f"Rendering favorites.html for user_id: {user_id}")
-    response = templates.TemplateResponse(
-        "favorites.html", {"request": request, "items": favorite_items, "user_id": user_id}
-    )
-    # Добавляем заголовки, запрещающие кеширование
-    response.headers["Cache-Control"] = "no-store"
-    return response
 
 
 @router.get("/cart", response_class=HTMLResponse)
