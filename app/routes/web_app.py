@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.crud import album_crud, user_crud, item_crud, photo_crud, favorites_crud, cart_crud
+from app.crud import album_crud, user_crud, item_crud, photo_crud, favorites_crud, cart_crud, admin_user_crud
 from app.utils.db import get_db
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -78,6 +78,10 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
     # Создаем словарь {item_id: {"quantity": quantity}}
     cart_data = {cart_item.item.id: {"quantity": cart_item.quantity} for cart_item in cart_items}
 
+    # Проверяем, админ ли пользователь
+    current_user_tg_id = await user_crud.get_user_tg_id_by_user_id(db, user_id)
+    is_admin = await admin_user_crud.is_current_user_admin(db, current_user_tg_id)
+
     # рендерим страницу
     response = templates.TemplateResponse(
         "index.html",
@@ -87,6 +91,7 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
             "items": filtered_items,
             "user_id": user_id,
             "cart_items": cart_data,  # Передаем данные корзины
+            "is_admin": is_admin,
         }
     )
     # Добавляем заголовки, запрещающие кеширование

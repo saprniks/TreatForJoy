@@ -14,3 +14,9 @@ async def create_admin_user(db: AsyncSession, user_telegram_id: int):
     await db.commit()
     await db.refresh(admin_user)
     return admin_user
+
+
+async def is_current_user_admin(db: AsyncSession, user_telegram_id: int):
+    admin_user = await get_admin_user(db, user_telegram_id)
+    return admin_user is not None
+
