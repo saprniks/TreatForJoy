@@ -131,10 +131,18 @@
     {% endif %}
 </div>
 
+<!-- Orders History Button -->
+<div class="container d-flex justify-content-center">
+    <a href="/webapp/previous_orders?user_id={{ user_id }}" class="btn btn-secondary mb-5">История заказов</a>
+</div>
+
 <!-- JavaScript -->
 
 <script>
-    function openTelegramChat() {
+    async function openTelegramChat() {
+        // Выполняем закрытие заказа
+        await checkoutCart();
+
         // Base Telegram URL
         const baseTelegramURL = "https://t.me/Maydo_me";
 
@@ -171,10 +179,30 @@ ${photoUrl}
         // Construct the full URL
         const fullURL = `${baseTelegramURL}?text=${encodedMessage}`;
 
+
+
         // Open the Telegram chat with the message
         window.open(fullURL, "_blank");
     }
+
+    async function checkoutCart() {
+        const userId = {{ user_id }};
+        try {
+            const response = await fetch("/webapp/api/cart/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: userId }),
+            });
+
+            if (!response.ok) {
+                console.error("Ошибка при закрытии заказа:", await response.json());
+            }
+        } catch (error) {
+            console.error("Ошибка при закрытии заказа:", error);
+        }
+    }
 </script>
+
 
 <script>
     function recalculateTotalPrice() {

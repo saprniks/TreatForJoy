@@ -10,7 +10,7 @@ async def get_cart_items_for_user(db: AsyncSession, user_id: int):
     """
     Получение всех товаров в корзине пользователя.
     """
-    stmt = select(Cart).where(Cart.user_id == user_id).options(selectinload(Cart.item))
+    stmt = select(Cart).where((Cart.user_id == user_id) & (Cart.checkout_timestamp == None)).options(selectinload(Cart.item))
     result = await db.execute(stmt)
     return result.scalars().all()
 
@@ -85,3 +85,16 @@ async def delete_cart_item(db: AsyncSession, user_id: int, item_id: int):
     )
     await db.execute(stmt)
     await db.commit()
+
+
+async def checkout_cart(db: AsyncSession, user_id: int):
+    current_time = datetime.utcnow()
+    stmt = update(Cart).where((Cart.user_id == user_id) & (Cart.checkout_timestamp == None)).values(checkout_timestamp=current_time)
+    await db.execute(stmt)
+    await db.commit()
+
+
+async def get_all_previous_orders(db: AsyncSession, user_id: int):
+    stmt = select(Cart).where((Cart.user_id == user_id) & (Cart.checkout_timestamp != None)).options(selectinload(Cart.item))
+    result = await db.execute(stmt)
+    return result.scalars().all()

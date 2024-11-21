@@ -215,8 +215,6 @@ async def toggle_favorite(
     return {"is_fav": is_fav}
 
 
-
-
 @router.get("/cart", response_class=HTMLResponse)
 async def view_cart(user_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     """
@@ -249,6 +247,37 @@ async def view_cart(user_id: int, request: Request, db: AsyncSession = Depends(g
     response.headers["Cache-Control"] = "no-store"
     # Рендерим страницу корзины
     return response
+
+
+@router.get("/previous_orders", response_class=HTMLResponse)
+async def view_orders_history(user_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+    """
+    Страница истории заказов для пользователя.
+    """
+    # Получаем все товары в корзине пользователя из завершенных заказов
+    cart_items = await cart_crud.get_all_previous_orders(db, user_id)
+
+    # Добавляем URL первой фотографии для каждого изделия
+    for cart_item in cart_items:
+        photo = await photo_crud.get_first_photo_for_item(db, cart_item.item.id)
+        cart_item.item.photo_url = photo.url
+
+    # Sort list of cart items by their item.id in ascending order
+    cart_items.sort(key=lambda x: x.item.id)
+
+    # Добавляем заголовки, запрещающие кеширование
+    response = templates.TemplateResponse(
+        "previous_orders.html",
+        {
+            "request": request,
+            "cart_items": cart_items,
+            "user_id": user_id,
+        }
+    )
+    response.headers["Cache-Control"] = "no-store"
+    # Рендерим страницу корзины
+    return response
+
 
 
 @router.post("/api/cart/update")
@@ -323,4 +352,17 @@ async def remove_item_from_cart(data: dict, db: AsyncSession = Depends(get_db)):
 
     # Удаляем товар из корзины
     await cart_crud.delete_cart_item(db, user_id, item_id)
+    return {"status": "success"}
+
+
+@router.post("/api/cart/checkout")
+async def checkout_cart(data: dict, db: AsyncSession = Depends(get_db)):
+    """
+    Закрытие корзины пользователя.
+    """
+    user_id = data.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Invalid user_id")
+
+    await cart_crud.checkout_cart(db, user_id)
     return {"status": "success"}
