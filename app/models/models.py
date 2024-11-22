@@ -82,8 +82,11 @@ class Photo(Base):
 
     item = relationship("Item", back_populates="photos")
 
+
 # Таблица администраторов
 class AdminUser(Base):
-    __tablename__ = 'admin_users'
+    __tablename__ = "admin_users"
     id = Column(Integer, primary_key=True)
-    user_telegram_id = Column(Integer, unique=True, nullable=False)
+    username = Column(String, unique=True, nullable=False)  # Логин
+    password_hash = Column(String, nullable=False)  # Хэш пароля
+    user_telegram_id = Column(Integer, unique=True, nullable=True)  # Поле для информации о Telegram ID
