@@ -81,11 +81,18 @@
 
                     <!-- Quantity Control -->
                     <div class="card flex-column justify-content-center align-items-center quantity-control ml-2" data-item-id="{{ item.id }}">
-                        <button class="btn-sm btn-light border increase-btn mb-1" data-item-id="{{ item.id }}"><span class="button-sign">+</span></button>
-                        <span class="mx-3 quantity-span" data-item-id="{{ item.id }}" {% if item.id not in cart_items or cart_items[item.id].quantity == 0 %}style="display: none;"{% endif %}>
-                            {{ cart_items[item.id].quantity if item.id in cart_items else 0 }}
-                        </span>
-                        <button class="btn-sm btn-light border decrease-btn mt-1" data-item-id="{{ item.id }}" {% if item.id not in cart_items or cart_items[item.id].quantity == 0 %}style="display: none;"{% endif %}><span class="button-sign" style="margin-left: -3px; margin-right: -3px;">–</span></button>
+                {% if item.is_available_to_order %}
+                    <button class="btn-sm btn-light border increase-btn mb-1" data-item-id="{{ item.id }}"><span class="button-sign">+</span></button>
+                    <span class="mx-3 quantity-span" data-item-id="{{ item.id }}" {% if item.id not in cart_items or cart_items[item.id].quantity == 0 %}style="display: none;"{% endif %}>
+                        {{ cart_items[item.id].quantity if item.id in cart_items else 0 }}
+                    </span>
+                    <button class="btn-sm btn-light border decrease-btn mt-1" data-item-id="{{ item.id }}" {% if item.id not in cart_items or cart_items[item.id].quantity == 0 %}style="display: none;"{% endif %}><span class="button-sign" style="margin-left: -3px; margin-right: -3px;">–</span></button>
+                {% else %}
+                    <div style="display: flex; align-items: center; justify-content: center; height: 80px; width: 30px;">
+                        <span style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 12px; color: #999; text-align: center;">Недоступно</span>
+                    </div>
+                {% endif %}
+
                     </div>
                 </div>
         {% endfor %}

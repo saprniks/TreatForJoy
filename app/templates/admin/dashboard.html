@@ -8,9 +8,25 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Welcome, {{ user.username }}</h2>
-        <p>This is the admin panel dashboard.</p>
-        <a href="/admin/logout" class="btn btn-danger">Logout</a>
+        <h2>Привет, {{ user.username }}</h2>
+        <p>Здесь мы добавляем новые альбомы и товары. Вносим изменения в существующие.</p>
+        <div class="list-group mt-4">
+            <a href="/admin/albums" class="list-group-item list-group-item-action">
+                Просмотреть, добавить и изменить альбомы
+            </a>
+            <a href="/admin/items" class="list-group-item list-group-item-action">
+                Manage Items (Coming Soon)
+            </a>
+            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                Manage Photos (Coming Soon)
+            </a>
+            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                Orders (Coming Soon)
+            </a>
+        </div>
+        <div class="mt-4">
+            <a href="/admin/logout" class="btn btn-danger">Logout</a>
+        </div>
     </div>
 </body>
 </html>

@@ -9,7 +9,8 @@ from app.routes import web_app  # Импортируем маршруты веб
 from bot import bot, dp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.types import Update
-from app.routes import admin
+from app.routes.admin import admin
+from app.routes.admin.albums import router as albums_router
 from contextlib import asynccontextmanager
 
 # Загрузка переменных окружения из .env
@@ -61,6 +62,8 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # Подключение маршрутов веб-приложения
 app.include_router(web_app.router, prefix="/webapp")
 app.include_router(admin.router)
+app.include_router(albums_router)
+
 
 # Инициализация базы данных
 async def init_db():

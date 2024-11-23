@@ -64,8 +64,12 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
     albums = await album_crud.get_all_albums(db)
     items_all = await item_crud.get_all_items(db)
 
+    # Фильтруем альбомы и изделия, у которых is_visible = False
+    visible_albums = [album for album in albums if album.is_visible]
+    visible_items = [item for item in items_all if item.is_visible]
+
     # Отбираем изделия с display_order <= 3
-    filtered_items = [item for item in items_all if item.display_order <= 3]
+    filtered_items = [item for item in visible_items if item.display_order <= 3]
 
     # Добавляем к каждой item поле photo с display_order = 1
     for item in filtered_items:
@@ -87,8 +91,8 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
         "index.html",
         {
             "request": request,
-            "albums": albums,
-            "items": filtered_items,
+            "albums": visible_albums,  # Передаем только видимые альбомы
+            "items": filtered_items,  # Передаем только отфильтрованные изделия
             "user_id": user_id,
             "cart_items": cart_data,  # Передаем данные корзины
             "is_admin": is_admin,
@@ -97,6 +101,7 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
     # Добавляем заголовки, запрещающие кеширование
     response.headers["Cache-Control"] = "no-store"
     return response
+
 
 
 @router.get("/favorites", response_class=HTMLResponse)
@@ -110,6 +115,9 @@ async def view_favorites(
     """
     # Получаем все избранные изделия пользователя
     favorite_items = await favorites_crud.get_favorites_items(db, user_id)
+
+    # Фильтруем альбомы и изделия, у которых is_visible = False
+    favorite_items = [item for item in favorite_items if item.is_visible]
 
     # Добавляем URL первой фотографии для каждого изделия
     for item in favorite_items:
@@ -143,6 +151,10 @@ async def view_album(
     # Retrieve the album and its items by album_id
     album = await album_crud.get_album_by_id(db, album_id)
     items = await item_crud.get_items_by_album_id(db, album_id)
+
+    # Фильтруем альбомы и изделия, у которых is_visible = False
+    items = [item for item in items if item.is_visible]
+
 
     # Add a photo with display_order = 1 to each item
     for item in items:

@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.models import AdminUser
-from app.utils.db import get_db
+from app.utils.db import get_db, SessionLocal  # Import SessionLocal
 import os
 from dotenv import load_dotenv
 import logging
@@ -40,9 +40,10 @@ async def get_user(username: str, session: AsyncSession) -> AdminUser | None:
 
 # Callback для fastapi-login
 @manager.user_loader()
-async def load_user(username: str, db_session: AsyncSession = Depends(get_db)):
+async def load_user(username: str):
     logger.debug(f"Loading user for username: {username}")
-    user = await get_user(username, db_session)
+    async with SessionLocal() as db_session:
+        user = await get_user(username, db_session)
     if user:
         logger.debug(f"User loaded successfully: {user.username}")
     else:
@@ -91,5 +92,5 @@ async def admin_dashboard(request: Request, user=Depends(manager)):
     if not user:
         logger.warning("Unauthorized access attempt to /admin.")
         raise HTTPException(status_code=401, detail="Unauthorized access. Please log in.")
-    logger.debug(f"User {user['sub']} accessed admin dashboard.")
+    logger.debug(f"User {user.username} accessed admin dashboard.")
     return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})

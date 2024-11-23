@@ -107,19 +107,15 @@
             <a href="#" id="contact-master-btn" class="btn btn-primary" onclick="openTelegramChat()">Написать мастеру</a>
 
             <!-- Quantity Control -->
-    <div class="d-flex align-items-center quantity-control">
-        {% if item.is_available_to_order %}
-            <button class="btn btn-light border" id="decrease-btn">
-              -
-            </button>
-            <span class="mx-3" id="quantity-span">0</span>
-            <button class="btn btn-light border" id="increase-btn">
-              +
-            </button>
-        {% else %}
-            <span style="color: #999; font-size: 14px;">Недоступно</span>
-        {% endif %}
-    </div>
+            <div class="d-flex align-items-center quantity-control">
+                <button class="btn btn-light border" id="decrease-btn">
+                  -
+                </button>
+                <span class="mx-3" id="quantity-span">0</span>
+                <button class="btn btn-light border" id="increase-btn">
+                  +
+                </button>
+            </div>
         </div>
     </div>
 
