@@ -80,7 +80,7 @@
                     </div>
 
                     <!-- Quantity Control -->
-                    <div class="card flex-column justify-content-center align-items-center quantity-control ml-2" data-item-id="{{ item.id }}">
+                    <div class="card flex-column justify-content-center align-items-center quantity-control ml-4" data-item-id="{{ item.id }}">
                 {% if item.is_available_to_order %}
                     <button class="btn-sm btn-light border increase-btn mb-1" data-item-id="{{ item.id }}"><span class="button-sign">+</span></button>
                     <span class="mx-3 quantity-span" data-item-id="{{ item.id }}" {% if item.id not in cart_items or cart_items[item.id].quantity == 0 %}style="display: none;"{% endif %}>

@@ -79,12 +79,6 @@ async def list_albums(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse("albums/list.html", {"request": request, "albums": albums})
 
 
-# Создание альбома
-@router.get("/create")
-async def create_album_form(request: Request):
-    return templates.TemplateResponse("albums/create.html", {"request": request})
-
-
 @router.post("/create")
 async def create_album(
     title: str = Form(...),
