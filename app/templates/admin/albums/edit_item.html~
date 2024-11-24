@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактировать изделие</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Установим фиксированную ширину для изображений */
+        #photo-gallery img {
+            width: 120px;
+            height: auto; /* Сохраняем пропорции */
+            object-fit: cover; /* Центрирование и обрезка для подгонки под размер */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .photo-entry {
+            text-align: center;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Редактировать изделие: {{ item.title }}</h2>
+        <form id="edit-item-form" method="POST" action="/admin/albums/items/{{ item.id }}/edit" onsubmit="submitForm(event)">
+            <div class="form-group">
+                <label for="title">Название изделия</label>
+                <input type="text" id="title" name="title" class="form-control" value="{{ item.title }}" required>
+            </div>
+            <div class="form-group">
+                <label for="sku">Артикул</label>
+                <input type="text" id="sku" name="sku" class="form-control" value="{{ item.sku }}">
+            </div>
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description" class="form-control">{{ item.description }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="price">Цена</label>
+                <input type="number" step="0.01" id="price" name="price" class="form-control" value="{{ item.price }}" required>
+            </div>
+            <div class="form-group">
+                <label for="display_order">Порядок отображения</label>
+                <input
+                    type="number"
+                    id="display_order"
+                    name="display_order"
+                    class="form-control"
+                    value="{{ item.display_order }}"
+                    min="1"
+                    max="{{ total_items }}"
+                    required
+                >
+                <small id="orderHelp" class="form-text text-muted">
+                    Порядок отображения должен быть от 1 до {{ total_items }}.
+                </small>
+            </div>
+            <div class="form-check">
+                <input type="hidden" name="is_visible" value="false">
+                <input type="checkbox" id="is_visible" name="is_visible" class="form-check-input" {% if item.is_visible %}checked{% endif %} value="true">
+                <label for="is_visible" class="form-check-label">Видимо</label>
+            </div>
+            <div class="form-check">
+                <input type="hidden" name="is_available_to_order" value="false">
+                <input type="checkbox" id="is_available_to_order" name="is_available_to_order" class="form-check-input" {% if item.is_available_to_order %}checked{% endif %} value="true">
+                <label for="is_available_to_order" class="form-check-label">Доступно для заказа</label>
+            </div>
+            
+            <h5>Фотографии</h5>
+            <div id="photo-gallery" class="photo-grid">
+                {% for photo in photos %}
+                <div class="photo-entry">
+                    <img src="{{ photo.url }}" alt="Фото">
+                    <input type="hidden" name="photos[{{ loop.index0 }}][id]" value="{{ photo.id }}">
+                    <input type="hidden" name="photos[{{ loop.index0 }}][url]" value="{{ photo.url }}">
+                    <input type="hidden" name="photos[{{ loop.index0 }}][display_order]" value="{{ photo.display_order }}">
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-4">Сохранить изменения</button>
+        </form>
+    </div>
+    <script>
+        async function submitForm(event) {
+            event.preventDefault();
+
+            const displayOrderInput = document.getElementById('display_order');
+            const minOrder = parseInt(displayOrderInput.getAttribute('min'));
+            const maxOrder = parseInt(displayOrderInput.getAttribute('max'));
+            const displayOrder = parseInt(displayOrderInput.value);
+
+            if (displayOrder < minOrder || displayOrder > maxOrder) {
+                alert(`Порядок отображения должен быть от ${minOrder} до ${maxOrder}. Указано: ${displayOrder}.`);
+                return;
+            }
+
+            const form = document.getElementById('edit-item-form');
+            const formData = new FormData(form);
+
+            // Сериализуем данные о фотографиях
+            const photoEntries = Array.from(document.querySelectorAll('.photo-entry')).map(entry => ({
+                id: entry.querySelector('input[name*="[id]"]').value,
+                url: entry.querySelector('input[name*="[url]"]').value,
+                display_order: parseInt(entry.querySelector('input[name*="[display_order]"]').value) // Преобразуем в int
+            }));
+            formData.append('photos', JSON.stringify(photoEntries));
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    window.location.href = '/admin/albums';
+                } else {
+                    const error = await response.json();
+                    console.error('Error:', error);
+                    alert(`Не удалось сохранить изменения: ${error.detail}`);
+                }
+            } catch (error) {
+                console.error("Ошибка при сохранении изделия:", error);
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить изделие</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #photo-upload-dropzone {
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .photo-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .photo-entry {
+            width: 120px;
+            text-align: center;
+        }
+
+        .photo-entry img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .photo-entry .photo-order {
+            font-size: 14px;
+            margin-top: 5px;
+            color: #666;
+        }
+    </style>
+<script>
+    let uploadedPhotos = [];
+
+    async function uploadPhoto(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/admin/albums/photos/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const photoUrl = data.photo_url;
+
+                // Add photo to gallery
+                const photoGallery = document.getElementById('photo-gallery');
+                const displayOrder = uploadedPhotos.length + 1;
+
+                const photoEntry = document.createElement('div');
+                photoEntry.classList.add('photo-entry');
+                photoEntry.dataset.index = displayOrder - 1;
+
+                photoEntry.innerHTML = `
+                    <img src="${photoUrl}" alt="Загруженное фото">
+                    <div class="photo-order">Порядок: ${displayOrder}</div>
+                    <div class="photo-actions">
+                        <button type="button" class="btn btn-sm btn-light move-left" onclick="movePhoto(${displayOrder - 1}, -1)" style="display: ${displayOrder === 1 ? 'none' : 'inline-block'};">←</button>
+                        <button type="button" class="btn btn-sm btn-light move-right" onclick="movePhoto(${displayOrder - 1}, 1)" style="display: inline-block;">→</button>
+                    </div>
+                `;
+
+                photoGallery.appendChild(photoEntry);
+
+                // Save photo URL and display order
+                uploadedPhotos.push({
+                    url: photoUrl,
+                    display_order: displayOrder,
+                });
+
+                updatePhotoActions();
+            } else {
+                const error = await response.json();
+                alert(`Не удалось загрузить фото: ${error.detail}`);
+            }
+        } catch (error) {
+            console.error("Ошибка при загрузке фото:", error);
+        }
+    }
+
+    function movePhoto(index, direction) {
+        const newIndex = index + direction;
+
+        if (newIndex < 0 || newIndex >= uploadedPhotos.length) {
+            return; // Prevent moving out of bounds
+        }
+
+        // Swap photos in uploadedPhotos array
+        const temp = uploadedPhotos[index];
+        uploadedPhotos[index] = uploadedPhotos[newIndex];
+        uploadedPhotos[newIndex] = temp;
+
+        // Update display_order values
+        uploadedPhotos.forEach((photo, i) => {
+            photo.display_order = i + 1;
+        });
+
+        // Update the photo gallery
+        updatePhotoGallery();
+    }
+
+    function updatePhotoGallery() {
+        const photoGallery = document.getElementById('photo-gallery');
+        photoGallery.innerHTML = ''; // Clear existing entries
+
+        uploadedPhotos.forEach((photo, index) => {
+            const photoEntry = document.createElement('div');
+            photoEntry.classList.add('photo-entry');
+            photoEntry.dataset.index = index;
+
+            photoEntry.innerHTML = `
+                <img src="${photo.url}" alt="Загруженное фото">
+                <div class="photo-order">Порядок: ${index + 1}</div>
+                <div class="photo-actions">
+                    <button type="button" class="btn btn-sm btn-light move-left" onclick="movePhoto(${index}, -1)" style="display: ${index === 0 ? 'none' : 'inline-block'};">←</button>
+                    <button type="button" class="btn btn-sm btn-light move-right" onclick="movePhoto(${index}, 1)" style="display: ${index === uploadedPhotos.length - 1 ? 'none' : 'inline-block'};">→</button>
+                </div>
+            `;
+
+            photoGallery.appendChild(photoEntry);
+        });
+    }
+
+    function handleFileSelect(event) {
+        const files = event.target.files;
+        for (const file of files) {
+            uploadPhoto(file);
+        }
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        const files = event.dataTransfer.files;
+        for (const file of files) {
+            uploadPhoto(file);
+        }
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+    }
+
+    async function submitForm(event) {
+        event.preventDefault();
+
+        const form = document.getElementById('add-item-form');
+        const formData = new FormData(form);
+
+        // Attach uploaded photos to the form data
+        formData.append('photos', JSON.stringify(uploadedPhotos));
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                window.location.href = '/admin/albums';
+            } else {
+                const error = await response.json();
+                alert(`Не удалось добавить изделие: ${error.detail}`);
+            }
+        } catch (error) {
+            console.error("Ошибка при добавлении изделия:", error);
+            alert("Произошла ошибка при добавлении изделия.");
+        }
+    }
+</script>
+
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Добавить изделие в альбом: {{ album.title }}</h2>
+        <form id="add-item-form" method="POST" action="/admin/albums/{{ album.id }}/add-item" onsubmit="submitForm(event)">
+            <div class="form-group">
+                <label for="title">Название изделия</label>
+                <input type="text" id="title" name="title" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="sku">Артикул</label>
+                <input type="text" id="sku" name="sku" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="price">Цена</label>
+                <input type="number" step="0.01" id="price" name="price" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="display_order">Порядок отображения</label>
+                <input type="number" id="display_order" name="display_order" class="form-control" min="1" max="{{ items_count + 1 }}" required>
+                <small class="form-text text-muted">
+                    Укажите число от 1 до {{ items_count + 1 }}. Следующие изделия в списке подвинутся на +1.
+                </small>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="is_visible" name="is_visible" class="form-check-input" checked>
+                <label for="is_visible" class="form-check-label">Видимо</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="is_available_to_order" name="is_available_to_order" class="form-check-input" checked>
+                <label for="is_available_to_order" class="form-check-label">Доступно для заказа</label>
+            </div>
+
+            <div id="photo-upload-dropzone"
+                ondrop="handleDrop(event)"
+                ondragover="handleDragOver(event)">
+                Перетащите фотографии сюда или
+                <button type="button" class="btn btn-link p-0" onclick="document.getElementById('photo-upload').click();">загрузите фотографии</button>
+                <input type="file" id="photo-upload" name="photo-upload" class="form-control" accept="image/*" multiple onchange="handleFileSelect(event)" style="display: none;">
+            </div>
+
+            <div id="photo-gallery" class="photo-grid mt-3">
+                <h5>Загруженные фотографии</h5>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-5">Добавить изделие</button>
+        </form>
+    </div>
+</body>
+</html>

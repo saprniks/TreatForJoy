@@ -68,8 +68,15 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
     visible_albums = [album for album in albums if album.is_visible]
     visible_items = [item for item in items_all if item.is_visible]
 
-    # Отбираем изделия с display_order <= 3
-    filtered_items = [item for item in visible_items if item.display_order <= 3]
+    # Отбираем первые три изделия по display_order для каждого альбома
+    filtered_items = []
+    for album in visible_albums:
+        album_items = [item for item in visible_items if item.album_id == album.id]
+        album_items = sorted(album_items, key=lambda item: item.display_order)[:3]
+        filtered_items.extend(album_items)
+
+    # Сортируем итоговый список изделий по display_order в возрастающем порядке
+    filtered_items = sorted(filtered_items, key=lambda item: item.display_order)
 
     # Добавляем к каждой item поле photo с display_order = 1
     for item in filtered_items:
@@ -101,6 +108,7 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
     # Добавляем заголовки, запрещающие кеширование
     response.headers["Cache-Control"] = "no-store"
     return response
+
 
 
 

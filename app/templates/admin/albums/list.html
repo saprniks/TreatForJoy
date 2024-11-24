@@ -61,8 +61,8 @@
                     <th>ID</th>
                     <th>Название альбома</th>
                     <th>Номер отображения</th>
-                    <th>Видимость</th>
                     <th>Возможность заказа</th>
+                    <th>Видимость</th>
                     <th>Действия</th>
                 </tr>
             </thead>
@@ -72,16 +72,16 @@
                     <td>{{ album.id }}</td>
                     <td>{{ album.title }}</td>
                     <td>{{ album.display_order }}</td>
-                    <td>{{ album.is_visible }}</td>
                     <td>{{ album.is_available_to_order }}</td>
+                    <td>{{ album.is_visible }}</td>
                     <td>
                         <a href="/admin/albums/{{ album.id }}/edit" class="btn btn-primary btn-sm">Edit</a>
                         <a href="/admin/albums/{{ album.id }}/delete" class="btn btn-danger btn-sm">Delete</a>
-                        <button onclick="toggleVisibility({{ album.id }})" class="btn btn-warning btn-sm">
-                            {% if album.is_visible %}Скрыть{% else %}Показать{% endif %}
-                        </button>
                         <button onclick="toggleAvailability({{ album.id }})" class="btn btn-info btn-sm">
                             {% if album.is_available_to_order %}Отключить заказ{% else %}Разрешить заказ{% endif %}
+                        </button>
+                        <button onclick="toggleVisibility({{ album.id }})" class="btn btn-warning btn-sm">
+                            {% if album.is_visible %}Скрыть{% else %}Показать{% endif %}
                         </button>
                         <button onclick="moveUp({{ album.id }})" class="btn btn-secondary btn-sm">Вверх</button>
                         <button onclick="moveDown({{ album.id }})" class="btn btn-secondary btn-sm">Вниз</button>
