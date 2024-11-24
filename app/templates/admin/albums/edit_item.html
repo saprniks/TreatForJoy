@@ -6,25 +6,164 @@
     <title>Редактировать изделие</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Установим фиксированную ширину для изображений */
-        #photo-gallery img {
+        #photo-upload-dropzone {
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .photo-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .photo-entry {
             width: 120px;
-            height: auto; /* Сохраняем пропорции */
-            object-fit: cover; /* Центрирование и обрезка для подгонки под размер */
+            text-align: center;
+        }
+
+        .photo-entry img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
 
-        .photo-entry {
-            text-align: center;
-            margin: 10px;
+        .photo-entry .photo-order {
+            font-size: 14px;
+            margin-top: 5px;
+            color: #666;
         }
     </style>
+    <script>
+        let uploadedPhotos = [];
+
+        function initializeExistingPhotos(photos) {
+            uploadedPhotos = photos.map((photo, index) => ({
+                id: photo.id,
+                url: photo.url,
+                display_order: index + 1,
+            }));
+            updatePhotoGallery();
+        }
+
+        async function uploadPhoto(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/admin/albums/photos/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const photoUrl = data.photo_url;
+
+                    uploadedPhotos.push({
+                        id: null, // Новый ID будет назначен на сервере
+                        url: photoUrl,
+                        display_order: uploadedPhotos.length + 1,
+                    });
+
+                    updatePhotoGallery();
+                } else {
+                    const error = await response.json();
+                    alert(`Не удалось загрузить фото: ${error.detail}`);
+                }
+            } catch (error) {
+                console.error("Ошибка при загрузке фото:", error);
+            }
+        }
+
+        function movePhoto(index, direction) {
+            const newIndex = index + direction;
+
+            if (newIndex < 0 || newIndex >= uploadedPhotos.length) {
+                return; // Prevent moving out of bounds
+            }
+
+            // Swap photos in uploadedPhotos array
+            const temp = uploadedPhotos[index];
+            uploadedPhotos[index] = uploadedPhotos[newIndex];
+            uploadedPhotos[newIndex] = temp;
+
+            // Update display_order values
+            uploadedPhotos.forEach((photo, i) => {
+                photo.display_order = i + 1;
+            });
+
+            updatePhotoGallery();
+        }
+
+        function updatePhotoGallery() {
+            const photoGallery = document.getElementById('photo-gallery');
+            photoGallery.innerHTML = ''; // Clear existing entries
+
+            uploadedPhotos.forEach((photo, index) => {
+                const photoEntry = document.createElement('div');
+                photoEntry.classList.add('photo-entry');
+                photoEntry.dataset.index = index;
+
+                photoEntry.innerHTML = `
+                    <img src="${photo.url}" alt="Фото">
+                    <div class="photo-order">Порядок: ${index + 1}</div>
+                    <div class="photo-actions">
+                        <button type="button" class="btn btn-sm btn-light move-left" onclick="movePhoto(${index}, -1)" style="display: ${index === 0 ? 'none' : 'inline-block'};">←</button>
+                        <button type="button" class="btn btn-sm btn-light move-right" onclick="movePhoto(${index}, 1)" style="display: ${index === uploadedPhotos.length - 1 ? 'none' : 'inline-block'};">→</button>
+                    </div>
+                `;
+
+                photoGallery.appendChild(photoEntry);
+            });
+        }
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            for (const file of files) {
+                uploadPhoto(file);
+            }
+        }
+
+        async function submitForm(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('edit-item-form');
+            const formData = new FormData(form);
+
+            // Attach uploaded photos to the form data
+            formData.append('photos', JSON.stringify(uploadedPhotos));
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    window.location.href = '/admin/albums';
+                } else {
+                    const error = await response.json();
+                    alert(`Не удалось сохранить изменения: ${error.detail}`);
+                }
+            } catch (error) {
+                console.error("Ошибка при сохранении изделия:", error);
+                alert("Произошла ошибка при сохранении изделия.");
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container mt-5">
         <h2>Редактировать изделие: {{ item.title }}</h2>
         <form id="edit-item-form" method="POST" action="/admin/albums/items/{{ item.id }}/edit" onsubmit="submitForm(event)">
+
             <div class="form-group">
                 <label for="title">Название изделия</label>
                 <input type="text" id="title" name="title" class="form-control" value="{{ item.title }}" required>
@@ -68,64 +207,27 @@
                 <label for="is_available_to_order" class="form-check-label">Доступно для заказа</label>
             </div>
 
-            <h5>Фотографии</h5>
-            <div id="photo-gallery" class="photo-grid">
-                {% for photo in photos %}
-                <div class="photo-entry">
-                    <img src="{{ photo.url }}" alt="Фото">
-                    <input type="hidden" name="photos[{{ loop.index0 }}][id]" value="{{ photo.id }}">
-                    <input type="hidden" name="photos[{{ loop.index0 }}][url]" value="{{ photo.url }}">
-                    <input type="hidden" name="photos[{{ loop.index0 }}][display_order]" value="{{ photo.display_order }}">
-                </div>
-                {% endfor %}
+            <div id="photo-upload-dropzone"
+                ondrop="handleDrop(event)"
+                ondragover="handleDragOver(event)">
+                Перетащите фотографии сюда или
+                <button type="button" class="btn btn-link p-0" onclick="document.getElementById('photo-upload').click();">загрузите фотографии</button>
+                <input type="file" id="photo-upload" name="photo-upload" class="form-control" accept="image/*" multiple onchange="handleFileSelect(event)" style="display: none;">
+            </div>
+
+            <div id="photo-gallery" class="photo-grid mt-3">
+                <h5>Загруженные фотографии</h5>
             </div>
 
             <button type="submit" class="btn btn-primary mt-4">Сохранить изменения</button>
         </form>
     </div>
+
     <script>
-        async function submitForm(event) {
-            event.preventDefault();
-
-            const displayOrderInput = document.getElementById('display_order');
-            const minOrder = parseInt(displayOrderInput.getAttribute('min'));
-            const maxOrder = parseInt(displayOrderInput.getAttribute('max'));
-            const displayOrder = parseInt(displayOrderInput.value);
-
-            if (displayOrder < minOrder || displayOrder > maxOrder) {
-                alert(`Порядок отображения должен быть от ${minOrder} до ${maxOrder}. Указано: ${displayOrder}.`);
-                return;
-            }
-
-            const form = document.getElementById('edit-item-form');
-            const formData = new FormData(form);
-
-            // Сериализуем данные о фотографиях
-            const photoEntries = Array.from(document.querySelectorAll('.photo-entry')).map(entry => ({
-                id: entry.querySelector('input[name*="[id]"]').value,
-                url: entry.querySelector('input[name*="[url]"]').value,
-                display_order: parseInt(entry.querySelector('input[name*="[display_order]"]').value) // Преобразуем в int
-            }));
-            formData.append('photos', JSON.stringify(photoEntries));
-
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (response.ok) {
-                    window.location.href = '/admin/albums';
-                } else {
-                    const error = await response.json();
-                    console.error('Error:', error);
-                    alert(`Не удалось сохранить изменения: ${error.detail}`);
-                }
-            } catch (error) {
-                console.error("Ошибка при сохранении изделия:", error);
-            }
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            // Инициализация существующих фотографий
+            initializeExistingPhotos({{ photos | tojson | safe }});
+        });
     </script>
-
 </body>
 </html>

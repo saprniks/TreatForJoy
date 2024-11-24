@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить альбом</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.querySelector("form");
+            const displayOrderInput = document.getElementById("display_order");
+            const maxDisplayOrder = {{ max_display_order }}
+
+            form.addEventListener("submit", (e) => {
+                const displayOrder = parseInt(displayOrderInput.value, 10);
+                if (displayOrder < 1 || displayOrder > maxDisplayOrder) {
+                    e.preventDefault(); // Останавливаем отправку формы
+                    alert(`Порядок отображения должен быть в диапазоне от 1 до ${maxDisplayOrder}`);
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Создать новый альбом</h2>
+        <form method="POST" action="/admin/albums/create">
+            <div class="form-group">
+                <label for="title">Название альбома</label>
+                <input type="text" id="title" name="title" class="form-control" placeholder="Введите название альбома" required>
+            </div>
+            <div class="form-group">
+                <label for="display_order">Порядок отображения</label>
+                <input type="number" id="display_order" name="display_order" class="form-control"
+                       value="{{ max_display_order }}"
+                       min="1" max="{{ max_display_order }}" required>
+                <small class="form-text text-muted">
+                    Укажите номер в интервале от 1 до {{max_display_order }}.
+                </small>
+            </div>
+            <div class="form-check">
+                <input type="hidden" name="is_visible" value="false">
+                <input type="checkbox" id="is_visible" name="is_visible" class="form-check-input" value="true" checked>
+                <label for="is_visible" class="form-check-label">Видимый</label>
+            </div>
+            <div class="form-check">
+                <input type="hidden" name="is_available_to_order" value="false">
+                <input type="checkbox" id="is_available_to_order" name="is_available_to_order" class="form-check-input" value="true" checked>
+                <label for="is_available_to_order" class="form-check-label">Доступен для заказа</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Перейти к добавлению изделий</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -223,18 +223,18 @@ async def edit_album(
 
     return RedirectResponse("/admin/albums", status_code=302)
 
-
-# Удаление альбома
-@router.get("/{album_id}/delete")
-async def delete_album(album_id: int, db: AsyncSession = Depends(get_db)):
-    query = select(Album).where(Album.id == album_id)
-    result = await db.execute(query)
-    album = result.scalars().first()
-    if not album:
-        raise HTTPException(status_code=404, detail="Album not found")
-    await db.delete(album)
-    await db.commit()
-    return RedirectResponse("/admin/albums", status_code=302)
+#
+# # Удаление альбома
+# @router.get("/{album_id}/delete")
+# async def delete_album(album_id: int, db: AsyncSession = Depends(get_db)):
+#     query = select(Album).where(Album.id == album_id)
+#     result = await db.execute(query)
+#     album = result.scalars().first()
+#     if not album:
+#         raise HTTPException(status_code=404, detail="Album not found")
+#     await db.delete(album)
+#     await db.commit()
+#     return RedirectResponse("/admin/albums", status_code=302)
 
 
 # Переключение видимости альбома
@@ -637,10 +637,21 @@ async def edit_item_form(item_id: int, request: Request, db: AsyncSession = Depe
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    # Получаем фото изделия
+    # Получаем фотографии изделия
     photo_query = select(Photo).where(Photo.item_id == item_id).order_by(Photo.display_order)
     photo_result = await db.execute(photo_query)
     photos = photo_result.scalars().all()
+
+    # Преобразуем фотографии в сериализуемый формат
+    serialized_photos = [
+        {
+            "id": photo.id,
+            "url": photo.url,
+            "description": photo.description,
+            "display_order": photo.display_order,
+        }
+        for photo in photos
+    ]
 
     # Получаем общее количество изделий в альбоме
     count_query = select(func.count()).select_from(Item).where(Item.album_id == item.album_id)
@@ -652,8 +663,8 @@ async def edit_item_form(item_id: int, request: Request, db: AsyncSession = Depe
         {
             "request": request,
             "item": item,
-            "photos": photos,
-            "total_items": total_items,  # Передаем общее количество изделий
+            "photos": serialized_photos,  # Передаём сериализованные фотографии
+            "total_items": total_items,
         },
     )
 
@@ -666,9 +677,9 @@ async def edit_item(
     price: float = Form(...),
     sku: str = Form(None),
     display_order: int = Form(...),
-    is_available_to_order: str = Form("false"),  # По умолчанию "false"
-    is_visible: str = Form("false"),  # По умолчанию "false"
-    photos: str = Form(...),
+    is_available_to_order: str = Form("false"),
+    is_visible: str = Form("false"),
+    photos: str = Form(...),  # JSON-строка с информацией о фотографиях
     db: AsyncSession = Depends(get_db),
 ):
     try:
@@ -676,7 +687,7 @@ async def edit_item(
         is_available_to_order = is_available_to_order.lower() == "true"
         is_visible = is_visible.lower() == "true"
 
-        # Проверяем, существует ли изделие
+        # Получаем изделие по ID
         query = select(Item).where(Item.id == item_id)
         result = await db.execute(query)
         item = result.scalars().first()
@@ -684,24 +695,22 @@ async def edit_item(
         if not item:
             raise HTTPException(status_code=404, detail="Item not found")
 
-        # Проверяем, изменился ли `display_order`
+        # Проверяем, изменился ли порядок отображения (`display_order`)
         old_display_order = item.display_order
         if display_order != old_display_order:
-            # Получаем все изделия в текущем альбоме
+            # Пересчёт порядков отображения для остальных изделий
             items_query = select(Item).where(Item.album_id == item.album_id)
             items_result = await db.execute(items_query)
             items = items_result.scalars().all()
 
-            # Если `display_order` увеличился
             if display_order > old_display_order:
                 for i in items:
                     if old_display_order < i.display_order <= display_order:
-                        i.display_order -= 1  # Сдвиг вниз
-            # Если `display_order` уменьшился
+                        i.display_order -= 1
             elif display_order < old_display_order:
                 for i in items:
                     if display_order <= i.display_order < old_display_order:
-                        i.display_order += 1  # Сдвиг вверх
+                        i.display_order += 1
 
         # Обновляем свойства изделия
         item.title = title
@@ -712,25 +721,28 @@ async def edit_item(
         item.is_available_to_order = is_available_to_order
         item.is_visible = is_visible
 
-        # Обновляем фотографии
-        photo_data = json.loads(photos)
+        # Обновление фотографий
+        photo_data = json.loads(photos)  # Преобразуем JSON-строку в список словарей
         existing_photos_query = select(Photo).where(Photo.item_id == item_id)
         existing_photos = (await db.execute(existing_photos_query)).scalars().all()
 
+        # Сохраняем новые или изменяем существующие фотографии
         for photo in photo_data:
             matching_photo = next((p for p in existing_photos if p.id == photo.get("id")), None)
             if matching_photo:
-                matching_photo.url = photo.get("url")
-                matching_photo.display_order = int(photo.get("display_order"))
+                # Обновляем существующую фотографию
+                matching_photo.url = photo["url"]
+                matching_photo.display_order = int(photo["display_order"])
             else:
+                # Добавляем новую фотографию
                 new_photo = Photo(
                     item_id=item.id,
-                    url=photo.get("url"),
-                    display_order=int(photo.get("display_order")),
+                    url=photo["url"],
+                    display_order=int(photo["display_order"]),
                 )
                 db.add(new_photo)
 
-        # Удаляем лишние фотографии
+        # Удаляем фотографии, которые больше не указаны
         for photo in existing_photos:
             if not any(p.get("id") == photo.id for p in photo_data):
                 await db.delete(photo)
@@ -742,4 +754,62 @@ async def edit_item(
     except Exception as e:
         logger.error(f"Error editing item: {e}")
         await db.rollback()
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@router.get("/create")
+async def create_album_form(request: Request, db: AsyncSession = Depends(get_db)):
+
+    # Подсчитываем общее количество альбомов
+    count_query = select(func.count()).select_from(Album)
+    count_result = await db.execute(count_query)
+    max_display_order = count_result.scalar() + 1
+    logger.info(f"Max display order: {max_display_order}")
+
+    # Передаем max_display_order в шаблон
+    return templates.TemplateResponse("albums/create.html", {"request": request, "max_display_order": max_display_order})
+
+
+@router.post("/create")
+async def create_album(
+    title: str = Form(...),
+    display_order: int = Form(...),
+    notes: str = Form(""),
+    is_visible: bool = Form(True),
+    is_available_to_order: bool = Form(True),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        # Сдвигаем порядок отображения существующих альбомов
+        shift_query = (
+            select(Album)
+            .where(Album.display_order >= display_order)
+            .order_by(Album.display_order.desc())
+        )
+        result = await db.execute(shift_query)
+        albums_to_shift = result.scalars().all()
+
+        for album in albums_to_shift:
+            album.display_order += 1
+            db.add(album)
+
+        # Создаём новый альбом
+        new_album = Album(
+            title=title,
+            notes=notes,
+            display_order=display_order,
+            is_visible=is_visible,
+            is_available_to_order=is_available_to_order,
+        )
+        db.add(new_album)
+        await db.flush()  # Получаем ID альбома до коммита
+
+        # Сохраняем изменения
+        await db.commit()
+
+        # Редирект на страницу редактирования нового альбома
+        return RedirectResponse(f"/admin/albums/{new_album.id}/edit", status_code=302)
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error creating album: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
