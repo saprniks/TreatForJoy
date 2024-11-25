@@ -28,13 +28,6 @@ templates = Jinja2Templates(directory="app/templates/admin")
 logger = logging.getLogger("app.routes.admin.albums")
 
 
-@manager.exception_handler(HTTPException)
-async def auth_exception_handler(request, exc):
-    if exc.status_code == 401:
-        return RedirectResponse(url="/admin/login", status_code=302)
-    return templates.TemplateResponse("albums/error.html", {"request": request, "detail": str(exc)}, status_code=exc.status_code)
-
-
 # Route for photo upload
 @router.post("/photos/upload")
 async def upload_photo(file: UploadFile, user=Depends(manager)):
