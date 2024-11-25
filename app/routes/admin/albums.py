@@ -14,7 +14,6 @@ from mimetypes import guess_type
 import json
 from fastapi import FastAPI, HTTPException
 from starlette.responses import RedirectResponse
-from main import app
 
 # Supabase configuration
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -29,11 +28,12 @@ templates = Jinja2Templates(directory="app/templates/admin")
 logger = logging.getLogger("app.routes.admin.albums")
 
 
-@app.exception_handler(HTTPException)
+@manager.exception_handler(HTTPException)
 async def auth_exception_handler(request, exc):
     if exc.status_code == 401:
         return RedirectResponse(url="/admin/login", status_code=302)
-    return templates.TemplateResponse("error.html", {"request": request, "detail": str(exc)}, status_code=exc.status_code)
+    return templates.TemplateResponse("albums/error.html", {"request": request, "detail": str(exc)}, status_code=exc.status_code)
+
 
 # Route for photo upload
 @router.post("/photos/upload")
