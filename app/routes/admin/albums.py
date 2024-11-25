@@ -5,13 +5,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func, delete, update
 from app.models.models import Album, Item, Photo
+from app.routes.admin.admin import manager
 from app.utils.db import get_db
 import logging
 import os
 from supabase import create_client, Client
 from mimetypes import guess_type
 import json
-
+from fastapi import FastAPI, HTTPException
+from starlette.responses import RedirectResponse
+from main import app
 
 # Supabase configuration
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -26,9 +29,15 @@ templates = Jinja2Templates(directory="app/templates/admin")
 logger = logging.getLogger("app.routes.admin.albums")
 
 
+@app.exception_handler(HTTPException)
+async def auth_exception_handler(request, exc):
+    if exc.status_code == 401:
+        return RedirectResponse(url="/admin/login", status_code=302)
+    return templates.TemplateResponse("error.html", {"request": request, "detail": str(exc)}, status_code=exc.status_code)
+
 # Route for photo upload
 @router.post("/photos/upload")
-async def upload_photo(file: UploadFile):
+async def upload_photo(file: UploadFile, user=Depends(manager)):
     try:
         # Ensure file is uploaded
         if not file:
@@ -72,7 +81,7 @@ async def upload_photo(file: UploadFile):
 
 # Список альбомов
 @router.get("/")
-async def list_albums(request: Request, db: AsyncSession = Depends(get_db)):
+async def list_albums(request: Request, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     query = select(Album).order_by(Album.display_order)
     result = await db.execute(query)
     albums = result.scalars().all()
@@ -87,6 +96,7 @@ async def create_album(
     is_visible: bool = Form(True),
     is_available_to_order: bool = Form(True),
     db: AsyncSession = Depends(get_db),
+    user=Depends(manager),
 ):
     new_album = Album(
         title=title,
@@ -102,7 +112,7 @@ async def create_album(
 
 # Редактирование альбома
 @router.get("/{album_id}/edit")
-async def edit_album_form(album_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+async def edit_album_form(album_id: int, request: Request, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Получаем альбом по ID
     query = select(Album).where(Album.id == album_id)
     result = await db.execute(query)
@@ -155,6 +165,7 @@ async def edit_album(
     is_visible: bool = Form(True),
     is_available_to_order: bool = Form(True),
     db: AsyncSession = Depends(get_db),
+    user=Depends(manager),
 ):
     # Получаем текущий альбом
     query = select(Album).where(Album.id == album_id)
@@ -233,7 +244,7 @@ async def edit_album(
 
 # Переключение видимости альбома
 @router.post("/{album_id}/toggle-visibility")
-async def toggle_visibility(album_id: int, db: AsyncSession = Depends(get_db)):
+async def toggle_visibility(album_id: int, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     query = select(Album).where(Album.id == album_id)
     result = await db.execute(query)
     album = result.scalars().first()
@@ -247,7 +258,7 @@ async def toggle_visibility(album_id: int, db: AsyncSession = Depends(get_db)):
 
 # Переключение возможности заказа альбома
 @router.post("/{album_id}/toggle-availability")
-async def toggle_availability(album_id: int, db: AsyncSession = Depends(get_db)):
+async def toggle_availability(album_id: int, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Получение альбома по ID
     query = select(Album).where(Album.id == album_id)
     result = await db.execute(query)
@@ -275,7 +286,7 @@ async def toggle_availability(album_id: int, db: AsyncSession = Depends(get_db))
 
 # Перемещение альбома вверх
 @router.post("/{album_id}/move-up")
-async def move_up(album_id: int, db: AsyncSession = Depends(get_db)):
+async def move_up(album_id: int, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Найти текущий альбом
     query = select(Album).where(Album.id == album_id)
     result = await db.execute(query)
@@ -306,7 +317,7 @@ async def move_up(album_id: int, db: AsyncSession = Depends(get_db)):
 
 # Перемещение альбома вниз
 @router.post("/{album_id}/move-down")
-async def move_down(album_id: int, db: AsyncSession = Depends(get_db)):
+async def move_down(album_id: int, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Найти текущий альбом
     query = select(Album).where(Album.id == album_id)
     result = await db.execute(query)
@@ -341,7 +352,7 @@ async def move_down(album_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{album_id}/add-item")
-async def add_item_form(album_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+async def add_item_form(album_id: int, request: Request, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Проверяем, существует ли альбом
     query = select(Album).where(Album.id == album_id)
     result = await db.execute(query)
@@ -377,6 +388,7 @@ async def add_item(
     is_available_to_order: bool = Form(True),
     photos: str = Form(...),  # JSON-строка с URL и порядком фото
     db: AsyncSession = Depends(get_db),
+    user=Depends(manager),
 ):
     # Проверяем, существует ли альбом
     query = select(Album).where(Album.id == album_id)
@@ -428,7 +440,7 @@ async def add_item(
 
 
 @router.post("/items/{item_id}/toggle-visibility")
-async def toggle_item_visibility(item_id: int, db: AsyncSession = Depends(get_db)):
+async def toggle_item_visibility(item_id: int, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Получаем изделие по ID
     query = select(Item).where(Item.id == item_id)
     result = await db.execute(query)
@@ -447,7 +459,7 @@ async def toggle_item_visibility(item_id: int, db: AsyncSession = Depends(get_db
 
 
 @router.post("/items/{item_id}/toggle-availability")
-async def toggle_item_availability(item_id: int, db: AsyncSession = Depends(get_db)):
+async def toggle_item_availability(item_id: int, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Получение изделия по ID
     query = select(Item).where(Item.id == item_id)
     result = await db.execute(query)
@@ -464,7 +476,7 @@ async def toggle_item_availability(item_id: int, db: AsyncSession = Depends(get_
 
 
 @router.post("/items/{item_id}/move-up")
-async def move_item_up(item_id: int, db: AsyncSession = Depends(get_db)):
+async def move_item_up(item_id: int, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Найти текущее изделие
     query = select(Item).where(Item.id == item_id)
     result = await db.execute(query)
@@ -500,7 +512,7 @@ async def move_item_up(item_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/items/{item_id}/move-down")
-async def move_item_down(item_id: int, db: AsyncSession = Depends(get_db)):
+async def move_item_down(item_id: int, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Найти текущее изделие
     query = select(Item).where(Item.id == item_id)
     result = await db.execute(query)
@@ -544,7 +556,7 @@ async def move_item_down(item_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/items/{item_id}/delete")
-async def delete_item(item_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+async def delete_item(item_id: int, request: Request, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     logger.info(f"Received request to delete item with ID: {item_id}")
     try:
         # Получение данных из запроса
@@ -622,7 +634,7 @@ async def delete_item(item_id: int, request: Request, db: AsyncSession = Depends
 
 
 @router.get("/items/{item_id}/edit")
-async def edit_item_form(item_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+async def edit_item_form(item_id: int, request: Request, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     # Получаем изделие по ID
     query = select(Item).where(Item.id == item_id)
     result = await db.execute(query)
@@ -675,6 +687,7 @@ async def edit_item(
     is_visible: str = Form("false"),
     photos: str = Form(...),  # JSON-строка с информацией о фотографиях
     db: AsyncSession = Depends(get_db),
+    user=Depends(manager),
 ):
     try:
         # Преобразуем значения флажков в булев тип
@@ -752,7 +765,7 @@ async def edit_item(
 
 
 @router.get("/create")
-async def create_album_form(request: Request, db: AsyncSession = Depends(get_db)):
+async def create_album_form(request: Request, db: AsyncSession = Depends(get_db), user=Depends(manager)):
 
     # Подсчитываем общее количество альбомов
     count_query = select(func.count()).select_from(Album)
@@ -772,6 +785,7 @@ async def create_album(
     is_visible: bool = Form(True),
     is_available_to_order: bool = Form(True),
     db: AsyncSession = Depends(get_db),
+    user=Depends(manager),
 ):
     try:
         # Сдвигаем порядок отображения существующих альбомов
