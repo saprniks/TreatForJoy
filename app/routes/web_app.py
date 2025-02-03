@@ -81,7 +81,10 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
     # Добавляем к каждой item поле photo с display_order = 1
     for item in filtered_items:
         photo = await photo_crud.get_first_photo_for_item(db, item.id)
-        item.photo_url = photo.url
+        if photo:
+            item.photo_url = photo.url
+        else:
+            item.photo_url = "no_image_image.jpg"
 
     # Получаем корзину пользователя
     cart_items = await cart_crud.get_cart_items_for_user(db, user_id)
