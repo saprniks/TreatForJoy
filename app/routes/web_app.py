@@ -84,7 +84,7 @@ async def index_page(tg_user_id: str, request: Request, db: AsyncSession = Depen
         if photo:
             item.photo_url = photo.url
         else:
-            item.photo_url = "https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/photos/no-image-large.jpg"
+            item.photo_url = "https://skcdwguqcbkqxsqrgswd.supabase.co/storage/v1/object/public/misc/no-image-large.jpg"
 
     # Получаем корзину пользователя
     cart_items = await cart_crud.get_cart_items_for_user(db, user_id)

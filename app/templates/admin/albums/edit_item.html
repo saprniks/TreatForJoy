@@ -106,9 +106,9 @@
             const photo = uploadedPhotos[index];
 
              // Проверяем, есть ли у фото URL (то есть оно загружено на сервер)
-             if (photo.url) {
+             if (photo.id) {
                 try {
-                    const response = await fetch(${photo.url}, {
+                    const response = await fetch(`/admin/albums/photos/upload/${photo.id}`, {
                     method: 'DELETE'
                     });
 
