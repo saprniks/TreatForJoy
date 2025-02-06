@@ -102,6 +102,37 @@
             updatePhotoGallery();
         }
 
+        async function deletePhoto(index) {
+            const photo = uploadedPhotos[index];
+
+             // Проверяем, есть ли у фото ID (то есть оно загружено на сервер)
+             if (photo.id) {
+                try {
+                    const response = await fetch(`/admin/albums/photos/delete/${photo.id}`, {
+                    method: 'DELETE'
+                    });
+
+                if (!response.ok) {
+                    alert("Ошибка при удалении фото с сервера!");
+                return;
+                }
+            } catch (error) {
+                console.error("Ошибка при удалении фото:", error);
+                alert("Не удалось удалить фото.");
+                return;
+            }
+        }
+
+        // Удаляем фото из массива
+        uploadedPhotos.splice(index, 1);
+
+        // Обновляем порядок после удаления
+        uploadedPhotos.forEach((photo, i) => {photo.display_order = i + 1;});
+
+        // Обновляем галерею
+        updatePhotoGallery();
+        }
+
         function updatePhotoGallery() {
             const photoGallery = document.getElementById('photo-gallery');
             photoGallery.innerHTML = ''; // Clear existing entries
@@ -117,6 +148,7 @@
                     <div class="photo-actions">
                         <button type="button" class="btn btn-sm btn-light move-left" onclick="movePhoto(${index}, -1)" style="display: ${index === 0 ? 'none' : 'inline-block'};">←</button>
                         <button type="button" class="btn btn-sm btn-light move-right" onclick="movePhoto(${index}, 1)" style="display: ${index === uploadedPhotos.length - 1 ? 'none' : 'inline-block'};">→</button>
+                        <button type="button" class="btn btn-sm btn-danger delete-photo" onclick="deletePhoto(${index})">X</button>
                     </div>
                 `;
 
@@ -222,6 +254,8 @@
             <br>
             <br>
             <button type="submit" class="btn btn-primary mt-4">Сохранить изменения</button>
+            <br>
+            <br>
         </form>
     </div>
 
