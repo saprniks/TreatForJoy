@@ -108,7 +108,7 @@
              // Проверяем, есть ли у фото URL (то есть оно загружено на сервер)
              if (photo.url) {
                 try {
-                    const response = await fetch(`${photo.url}`, {
+                    const response = await fetch(${photo.url}, {
                     method: 'DELETE'
                     });
 
@@ -257,7 +257,11 @@
             <br>
             <br>
         </form>
+        <br>
+        <br>
     </div>
+    <br>
+    <br>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
