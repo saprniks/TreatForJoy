@@ -105,10 +105,10 @@
         async function deletePhoto(index) {
             const photo = uploadedPhotos[index];
 
-             // Проверяем, есть ли у фото ID (то есть оно загружено на сервер)
-             if (photo.id) {
+             // Проверяем, есть ли у фото URL (то есть оно загружено на сервер)
+             if (photo.url) {
                 try {
-                    const response = await fetch(`/admin/albums/photos/delete/${photo.id}`, {
+                    const response = await fetch(`${photo.url}`, {
                     method: 'DELETE'
                     });
 
