@@ -12,6 +12,7 @@ from aiogram.types import Update
 from app.routes.admin import admin
 from app.routes.admin.albums import router as albums_router
 from contextlib import asynccontextmanager
+from app.routes.admin.photos import router as photos_router
 
 # Загрузка переменных окружения из .env
 load_dotenv()
@@ -63,7 +64,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.include_router(web_app.router, prefix="/webapp")
 app.include_router(admin.router)
 app.include_router(albums_router)
-
+app.include_router(photos_router)
 
 # Инициализация базы данных
 async def init_db():
