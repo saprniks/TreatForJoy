@@ -77,13 +77,13 @@ async def delete_photo(photo_id: int, request: Request, db: AsyncSession = Depen
     logger.info(f"Received request to delete photo with ID: {photo_id}")
     try:
         # Получение данных из запроса
-        data = await request.json()
-        logger.debug(f"Request JSON data: {data}")
+        #data = await request.json()
+        #logger.debug(f"Request JSON data: {data}")
 
-        display_order = data.get("displayOrder")
-        if display_order is None:
-            logger.error("Missing 'displayOrder' field in request body")
-            raise HTTPException(status_code=422, detail="Missing 'displayOrder' field in request body")
+        #display_order = data.get("displayOrder")
+        #if display_order is None:
+        #    logger.error("Missing 'displayOrder' field in request body")
+        #    raise HTTPException(status_code=422, detail="Missing 'displayOrder' field in request body")
 
         # Поиск изделия по ID
         photo_query = select(Photo).where(Photo.id == photo_id)
