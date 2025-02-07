@@ -27,7 +27,7 @@ router = APIRouter(prefix="/admin/albums", tags=["Albums"])
 templates = Jinja2Templates(directory="app/templates/admin")
 logger = logging.getLogger("app.routes.admin.albums")
 
-@router.post("/items/{item_id}/delete")
+@router.delete("/photos/delete/{photo_id}")
 async def delete_photo(photo_id: int, request: Request, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     logger.info(f"Received request to delete photo with ID: {photo_id}")
     try:
