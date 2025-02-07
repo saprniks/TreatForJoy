@@ -12,7 +12,7 @@ from aiogram.types import Update
 from app.routes.admin import admin
 from app.routes.admin.albums import router as albums_router
 from contextlib import asynccontextmanager
-from app.routes.admin.albums.photos import router as photos_router
+from app.routes.admin.photos import router as photos_router
 
 # Загрузка переменных окружения из .env
 load_dotenv()
