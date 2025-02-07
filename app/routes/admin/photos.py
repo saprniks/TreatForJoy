@@ -23,11 +23,11 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-router = APIRouter(prefix="/admin/photos", tags=["Photos"])
+router = APIRouter(prefix="/admin/albums/photos", tags=["Photos"])
 templates = Jinja2Templates(directory="app/templates/admin")
-logger = logging.getLogger("app.routes.admin.photos")
+logger = logging.getLogger("app.routes.admin.albums.photos")
 
-@router.delete("/photos/delete/{photo_id}")
+@router.delete("/admin/albums/photos/delete/{photo_id}")
 async def delete_photo(photo_id: int, request: Request, db: AsyncSession = Depends(get_db), user=Depends(manager)):
     logger.info(f"Received request to delete photo with ID: {photo_id}")
     try:
