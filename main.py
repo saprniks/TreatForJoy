@@ -95,3 +95,9 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=PORT)
+
+from fastapi.routing import APIRoute
+
+for route in app.routes:
+    if isinstance(route, APIRoute):
+        print(route.path, route.methods)
