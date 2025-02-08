@@ -10,6 +10,7 @@ from app.utils.db import get_db, SessionLocal  # Import SessionLocal
 import os
 from dotenv import load_dotenv
 import logging
+from datetime import timedelta
 
 # Настройки
 load_dotenv()
@@ -17,7 +18,8 @@ SECRET = os.getenv("SECRET_KEY")
 if not SECRET:
     raise ValueError("SECRET_KEY is not set in the environment.")
 
-manager = LoginManager(SECRET, token_url="/admin/login", use_cookie=True)
+#manager = LoginManager(SECRET, token_url="/admin/login", use_cookie=True)
+manager = LoginManager(SECRET, token_url="/admin/login", use_cookie=True, expires_in=timedelta(hours=12))
 manager.cookie_name = "access-token"
 templates = Jinja2Templates(directory="app/templates/admin")
 
