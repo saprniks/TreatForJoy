@@ -97,7 +97,8 @@
     <div class="container item-details">
         <p class="text-muted mb-1"><small>Артикул: {{ item.sku if item.sku else "NoN/Null" }}</small></p>
         <h4 class="mb-3">{{ item.title }}</h4>
-        <p class="mb-3">{{ item.description|safe }}</p>
+        <!-- <p class="mb-3">{{ item.description|safe }}</p> -->
+        <p class="mb-3">{{ item.description }}</p>
         <p class="mb-4"><strong>Цена:</strong> {{ item.price }} ₽</p>
 
         <!-- Actions -->
@@ -139,7 +140,8 @@
 ${photoUrl}
 Артикул: {{ item.sku if item.sku else "NoN/Null" }}
 {{ item.title }}
-{{ item.description|safe }}
+// {{ item.description|safe }}
+{{ item.description }}
 Цена: {{ item.price }} ₽
         `.trim(); // Trim removes unnecessary spaces or newlines at the start/end
 
