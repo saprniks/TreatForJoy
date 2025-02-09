@@ -74,7 +74,8 @@ async def login(
         )
 
     logger.info(f"User '{username}' successfully logged in.")
-    access_token = manager.create_access_token(data={"sub": user.username})
+    access_token = manager.create_access_token(data={"sub": user.username},
+                                               expires=timedelta(hours=240))
     response = RedirectResponse(url="/admin", status_code=302)
     manager.set_cookie(response, access_token)
     logger.debug(f"Token set in cookie for user '{username}': {access_token}")
