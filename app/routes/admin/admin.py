@@ -19,7 +19,7 @@ if not SECRET:
     raise ValueError("SECRET_KEY is not set in the environment.")
 
 #manager = LoginManager(SECRET, token_url="/admin/login", use_cookie=True)
-manager = LoginManager(SECRET, token_url="/admin/login", use_cookie=True, expires_in=timedelta(hours=240))
+manager = LoginManager(SECRET, token_url="/admin/login", use_cookie=True)
 manager.cookie_name = "access-token"
 templates = Jinja2Templates(directory="app/templates/admin")
 
