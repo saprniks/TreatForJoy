@@ -62,11 +62,12 @@ async def upload_photo(file: UploadFile, compress_photo: str = Form("true"), use
         else:
             output = io.BytesIO(file_content)  # Приводим к BytesIO
             output.seek(0)
+        file_content = output.getvalue()
 
         # Upload to Supabase with MIME type
         response = supabase.storage.from_("photos").upload(
             #file_name, file_content, {"content-type": mime_type}
-            file_name, output, {"content-type": mime_type}
+            file_name, file_content, {"content-type": mime_type}
         )
 
         # Check if the upload was successful
