@@ -46,6 +46,7 @@
     async function uploadPhoto(file) {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append("compress_photo", compress_photo);
 
         try {
             const response = await fetch('/admin/albums/photos/upload', {
@@ -218,6 +219,10 @@
                 <input type="checkbox" id="is_available_to_order" name="is_available_to_order" class="form-check-input" checked>
                 <label for="is_available_to_order" class="form-check-label">Доступно для заказа</label>
             </div>
+            <div class="form-check">
+                <input type="checkbox" id="compress_photo" name="compress_photo" class="form-check-input" checked>
+                <label for="compress_photo" class="form-check-label">Сжимать фото при загрузке</label>
+            </div>
 
             <div id="photo-upload-dropzone"
                 ondrop="handleDrop(event)"
@@ -231,7 +236,11 @@
                 <h5>Загруженные фотографии</h5>
             </div>
 
+            <br>
+            <br>
             <button type="submit" class="btn btn-primary mt-5">Добавить изделие</button>
+            <br>
+            <br>
         </form>
     </div>
 </body>

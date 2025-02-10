@@ -7,6 +7,8 @@ from sqlalchemy import func, delete, update
 from app.models.models import Album, Item, Photo
 from app.routes.admin.admin import manager
 from app.utils.db import get_db
+from PIL import Image
+import io
 import logging
 import os
 from supabase import create_client, Client
@@ -30,7 +32,7 @@ logger = logging.getLogger("app.routes.admin.albums")
 
 # Route for photo upload
 @router.post("/photos/upload")
-async def upload_photo(file: UploadFile, user=Depends(manager)):
+async def upload_photo(file: UploadFile, compress_photo: str = Form("true"), user=Depends(manager)):
     try:
         # Ensure file is uploaded
         if not file:
@@ -46,10 +48,21 @@ async def upload_photo(file: UploadFile, user=Depends(manager)):
             mime_type = "application/octet-stream"  # Fallback if the type is unknown
         logger.info(f"Determined MIME type: {mime_type} for file {file_name}")
 
+        compress_photo = compress_photo.lower() == "true"
+        if compress_photo:
+            # Открываем изображение и сжимаем его
+            image = Image.open(io.BytesIO(file_content))
+            output = io.BytesIO()
+            format = "JPEG" if image.format == "JPEG" else "PNG"
+            image.save(output, format=format, quality=70, optimize=True)
+            output.seek(0)
+        else:
+            output = io.BytesIO(file_content)
 
         # Upload to Supabase with MIME type
         response = supabase.storage.from_("photos").upload(
-            file_name, file_content, {"content-type": mime_type}
+            #file_name, file_content, {"content-type": mime_type}
+            file_name, output, {"content-type": mime_type}
         )
 
         # Check if the upload was successful
