@@ -54,7 +54,7 @@
 
         async function uploadPhoto(file) {
             const compressPhoto = document.getElementById("compress_photo").checked;
-            const compressPhoto = document.getElementById("compression_ratio").value;
+            const compressionRatio = document.getElementById("compression_ratio").value;
             const formData = new FormData();
             formData.append('file', file);
             formData.append("compress_photo", compressPhoto);
