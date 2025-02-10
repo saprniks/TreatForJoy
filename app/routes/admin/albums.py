@@ -32,7 +32,7 @@ logger = logging.getLogger("app.routes.admin.albums")
 
 # Route for photo upload
 @router.post("/photos/upload")
-async def upload_photo(file: UploadFile, compress_photo: str = Form("true"), user=Depends(manager)):
+async def upload_photo(file: UploadFile, compress_photo: str = Form("true"), compression_ratio: int = Form(50), user=Depends(manager)):
     try:
         # Ensure file is uploaded
         if not file:
@@ -51,10 +51,11 @@ async def upload_photo(file: UploadFile, compress_photo: str = Form("true"), use
         compress_photo = compress_photo.lower() == "true"
         if compress_photo:
             # Открываем изображение и сжимаем его
+            compression_ratio = max(1, min(100, compression_ratio))
             image = Image.open(io.BytesIO(file_content))
             output = io.BytesIO()
             if image.format == "JPEG":
-               image.save(output, format="JPEG", quality=50, optimize=True)
+               image.save(output, format="JPEG", quality=compression_ratio, optimize=True)
             else:  # Для PNG
                 image = image.convert("P", palette=Image.ADAPTIVE)
                 image.save(output, format="PNG", optimize=True)

@@ -54,9 +54,11 @@
 
         async function uploadPhoto(file) {
             const compressPhoto = document.getElementById("compress_photo").checked;
+            const compressPhoto = document.getElementById("compression_ratio").value;
             const formData = new FormData();
             formData.append('file', file);
             formData.append("compress_photo", compressPhoto);
+            formData.append("compression_ratio", compressionRatio);
 
             try {
                 const response = await fetch('/admin/albums/photos/upload', {
@@ -243,8 +245,12 @@
             </div>
             <div class="form-check">
                 <input type="hidden" name="compress_photo" value="false">
-                <input type="checkbox" id="compress_photo" name="compress_photo" class="form-check-input" value="true" checked>
-                <label for="compress_photo" class="form-check-label">Сжимать фото при загрузке</label>
+                <input type="checkbox" id="compress_photo" name="compress_photo" class="form-check-input" value="false">
+                <label for="compress_photo" class="form-check-label">Сжимать фото при загрузке на %</label>
+            </div>
+            <div class="form-group">
+                <label for="compression_ratio">Процент сжатия (1-100%)</label>
+                <input type="number" step="1" id="compression_ratio" name="compression_ratio" class="form-control" value="50" min="1" max="100">
             </div>
 
             <div id="photo-upload-dropzone"
