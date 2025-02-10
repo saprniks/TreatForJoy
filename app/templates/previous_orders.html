@@ -69,7 +69,7 @@
                         <div class="card-body p-1">
                             <h6 class="card-title mb-1">{{ cart_item.item.title|striptags }}</h6>
                             <p class="card-text mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: auto;">
-                                {{ cart_item.item.description|striptags }}
+                                {{ cart_item.item.description.replace('\n', '<br>')|striptags }}
                             </p>
                             <p class="card-text"><strong>Цена:</strong> {{ cart_item.item.price }} ₽</p>
                         </div>

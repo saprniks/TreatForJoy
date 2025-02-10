@@ -111,7 +111,7 @@
                                         <div class="card-body p-1" style=" margin-right: 20px;" onclick="window.location.href='/webapp/item/{{ item.id }}?user_id={{ user_id }}'">
                                             <h6 class="card-title mb-1">{{ item.title|striptags }}</h6>
                                             <p class="card-text mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: auto;">
-                                                {{ item.description|striptags }}
+                                                {{ item.description.replace('\n', '<br>')|striptags }}
                                             </p>
                                             <p class="card-text"><strong>Цена:</strong> {{ item.price }} ₽</p>
                                         </div>
