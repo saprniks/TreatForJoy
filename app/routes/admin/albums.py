@@ -53,11 +53,15 @@ async def upload_photo(file: UploadFile, compress_photo: str = Form("true"), use
             # Открываем изображение и сжимаем его
             image = Image.open(io.BytesIO(file_content))
             output = io.BytesIO()
-            format = "JPEG" if image.format == "JPEG" else "PNG"
-            image.save(output, format=format, quality=70, optimize=True)
+            if image.format == "JPEG":
+               image.save(output, format="JPEG", quality=50, optimize=True)
+            else:  # Для PNG
+                image = image.convert("P", palette=Image.ADAPTIVE)
+                image.save(output, format="PNG", optimize=True)
             output.seek(0)
         else:
-            output = io.BytesIO(file_content)
+            output = io.BytesIO(file_content)  # Приводим к BytesIO
+            output.seek(0)
 
         # Upload to Supabase with MIME type
         response = supabase.storage.from_("photos").upload(
