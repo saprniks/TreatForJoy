@@ -54,7 +54,9 @@ async def lifespan(app: FastAPI):
     await bot.delete_webhook()
     await engine.dispose()
 
-app = FastAPI(lifespan=lifespan)
+#app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, docs_url="/docs", redoc_url=None)
+uvicorn.run(app, host="0.0.0.0", port=PORT, proxy_headers=True)
 
 # Mount static files globally
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
